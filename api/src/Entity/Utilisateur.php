@@ -25,8 +25,9 @@ class Utilisateur
     #[ORM\Column(length: 255)]
     private ?string $mdp = null;
 
-    #[ORM\Column]
-    private ?bool $administrateur = null;
+    #[ORM\ManyToOne(targetEntity: Role::class)]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Role $role = null;
 
     public function getId(): ?int
     {
@@ -77,14 +78,14 @@ class Utilisateur
         return $this;
     }
 
-    public function isAdministrateur(): ?bool
+    public function getRole(): ?Role
     {
-        return $this->administrateur;
+        return $this->role;
     }
 
-    public function setAdministrateur(bool $administrateur): static
+    public function setRole(Role $role): static
     {
-        $this->administrateur = $administrateur;
+        $this->role = $role;
         return $this;
     }
 }
