@@ -14,7 +14,7 @@ class Role
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $nom = null;
+    private ?string $role = null;
 
     public function getId(): ?int
     {
@@ -23,12 +23,12 @@ class Role
 
     public function getNom(): ?string
     {
-        return $this->nom;
+        return $this->role;
     }
 
-    public function setNom(string $nom): static
+    public function setNom(string $role): static
     {
-        $this->nom = $nom;
+        $this->role = $role;
         return $this;
     }
 }
