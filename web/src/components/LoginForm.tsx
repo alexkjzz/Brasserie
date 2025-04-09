@@ -13,14 +13,16 @@ const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (username === 'admin' && password === 'password') {
-    router.push('/')
-    setError('Identifiants incorrects')
+    router.push('/dashboard/user')
+    }
+    else {
+        setError('Identifiants incorrects')
     }
 }
 
 return (
     <div className="p-6 max-w-sm w-full bg-[var(--celadon)] text-[var(--foreground-light)] shadow-lg rounded-lg">
-    <h2 className="text-2xl text-center text-[var(--foreground-light)]">Connexion</h2>
+    <h2 className="text-2xl font- text-center text-[var(--foreground-light)]">Connexion</h2>
     <form onSubmit={handleLogin} className="mt-4 space-y-4">
         <input
         type="text"

@@ -1,6 +1,6 @@
 /* globals.css */
 @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Geist+Sans&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap');
 @import "tailwindcss";
 
 /* Définir les couleurs personnalisées */
@@ -34,6 +34,9 @@ body {
   color: var(--foreground-light);
   font-family: var(--font-sans);
   overflow: hidden;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 input, button {

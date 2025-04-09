@@ -1,17 +1,19 @@
-// src/app/page.tsx
-import { redirect } from 'next/navigation'
+'use client';
+
+import Link from 'next/link';
 
 export default function HomePage() {
-  const token = null  // Remplacer null par un token réel si nécessaire
-
-  // if (!token) {
-  //   redirect('/login')  // Redirection vers la page de connexion si aucun token n'est présent
-  // }
-
   return (
-    <div className="p-6 text-center">
-      <h2 className="text-3xl font-bold text-celadon">Bienvenue à la Brasserie</h2>
-      <p className="mt-4 text-lg text-foreground">Découvrez nos produits et notre histoire.</p>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-[var(--background-light)] text-[var(--foreground-light)]">
+      <h1 className="text-4xl font-bold mb-6">Bienvenue sur le site de réservation de Brasserie</h1>
+      <p className="text-lg text-center mb-6">
+        Découvrez nos produits et réservez facilement en ligne.
+      </p>
+      <Link href="/products">
+        <button className="py-3 px-6 bg-[var(--button-bg)] text-[var(--button-text)] rounded-md hover:bg-[var(--moss-green)] hover:text-white transition">
+          Voir notre vitrine de produits
+        </button>
+      </Link>
     </div>
-  )
+  );
 }
