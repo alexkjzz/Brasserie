@@ -13,7 +13,7 @@ const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (username === 'admin' && password === 'password') {
-    router.push('/dashboard/user')
+    router.push('/')
     }
     else {
         setError('Identifiants incorrects')

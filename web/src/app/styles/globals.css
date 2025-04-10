@@ -1,6 +1,8 @@
 /* globals.css */
 @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+
 @import "tailwindcss";
 
 /* Définir les couleurs personnalisées */
@@ -12,7 +14,7 @@
   --raw-umber: #8b5d33;
 
   --font-mono: "Fira Code", monospace;
-  --font-sans: "Geist Sans", sans-serif;
+  --font-sans: "Montserrat", sans-serif;
   --background-light: #a7cdbd; /* Couleur de fond douce */
   --foreground-light: #171717; /* Texte foncé */
   --foreground-dark: #ededed; /* Texte clair */
