@@ -1,19 +1,27 @@
-'use client';
+import Footer from "@/components/Footer";
 
-import Link from 'next/link';
-
-export default function HomePage() {
+export default function Home() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-[var(--background-light)] text-[var(--foreground-light)]">
-      <h1 className="text-4xl font-bold mb-6">Bienvenue sur le site de réservation de Brasserie</h1>
-      <p className="text-lg text-center mb-6">
-        Découvrez nos produits et réservez facilement en ligne.
-      </p>
-      <Link href="/products">
-        <button className="py-3 px-6 bg-[var(--button-bg)] text-[var(--button-text)] rounded-md hover:bg-[var(--moss-green)] hover:text-white transition">
-          Voir notre vitrine de produits
-        </button>
-      </Link>
-    </div>
+    <main className="flex justify-center items-start w-full p-8">
+      <div className="grid grid-cols-[2fr_auto_2fr] gap-10 w-full max-w-5xl mt-16">
+        <div className="pr-8">
+        </div>
+        <div className="hidden md:block bg-stone-500 w-px h-full mx-auto"></div>
+        <div className="pl-8">
+        </div>
+      </div>
+      <Footer  />
+    </main>
   );
 }
+
+
+
+
+
+
+
+
+
+
+

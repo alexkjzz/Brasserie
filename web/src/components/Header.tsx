@@ -1,15 +1,25 @@
-'use client';
+"use client";
 
-import React from 'react';
+import { usePathname } from "next/navigation";
 
-interface HeaderProps {
-title: string;
-}
+const Header = () => {
+const pathname = usePathname();
 
-export default function Header({ title }: HeaderProps) {
+// Définition des titres directement dans le composant
+const pageTitles: Record<string, string> = {
+    "/": "Accueil",
+    "/reservations": "Gestion des réservation",
+    "/users": "Gestion des utilisateurs",
+    "/products": "Gestions des produits",
+};
+
+const title = pageTitles[pathname] || "Brasserie";
+
 return (
-    <header className="w-full bg-[var(--header-bg)] text-[var(--header-text)] py-6 shadow-md">
-    <h1 className="text-3xl font-bold text-center">{title}</h1>
+    <header className="fixed top-0 left-40 w-[calc(100%-40px)] h-19 border-b border-stone-500 bg-stone-800 flex items-center px-7">
+    <h2 className="text-xl font-medium">{title}</h2>
     </header>
 );
-}
+};
+
+export default Header;
