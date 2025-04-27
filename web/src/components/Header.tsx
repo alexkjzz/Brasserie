@@ -8,6 +8,10 @@ const pathname = usePathname();
 // Définition des titres directement dans le composant
 const pageTitles: Record<string, string> = {
     "/": "Accueil",
+    "/dashboard": "Accueil",
+    "/settings": "Paramètres",
+    "/profile": "Profil",
+    "/login": "Login",
     "/reservations": "Gestion des réservation",
     "/users": "Gestion des utilisateurs",
     "/products": "Gestions des produits",

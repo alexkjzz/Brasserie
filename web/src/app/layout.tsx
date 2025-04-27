@@ -3,6 +3,7 @@ import { Geist_Mono } from "next/font/google";
 import "@/styles/globals.css";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
@@ -22,10 +23,10 @@ export default function RootLayout({
       <body className={`${geistMono.variable} bg-stone-600 text-white`}>
         <Sidebar />
         <Header />
-        <main className="ml-40 mt-19 p-8 pb-16 flex-1 min-h-screen bg-stone-600">
+        <main className="ml-40 mt-19 flex-1 min-h-screen bg-stone-600">
           {children}
         </main>
-
+        <Footer  />
       </body>
     </html>
   );

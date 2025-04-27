@@ -1,11 +1,9 @@
 export default function Footer() {
     return (
-    <footer className="fixed bottom-0 w-full h-auto px-6 pb-6 text-sm text-right z-70">
-        <div className="container mx-auto">
-        <p className="text-sm">
-            &copy; {new Date().getFullYear()} Brasserie.
-        </p>
-        </div>
-    </footer>
+        <footer className="fixed right-4 bottom-4 w-auto px-6 py-2 text-sm text-right">
+            <p className="text-sm text-white">
+                &copy; {new Date().getFullYear()} Brasserie.
+            </p>
+        </footer>
     );
 }

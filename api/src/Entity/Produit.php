@@ -37,6 +37,7 @@ class Produit
     public function __construct()
     {
         $this->detailsReservations = new ArrayCollection();
+        $this->disponible = false; // ✅ Définit une valeur par défaut
     }
 
     public function getId(): ?int
@@ -85,18 +86,21 @@ class Produit
     public function setQuantite(int $quantite): static
     {
         $this->quantite = $quantite;
-        return $this;
+        $this->disponible = $quantite > 0; 
+    
+        return $this; 
     }
 
     public function isDisponible(): ?bool
     {
         return $this->disponible;
     }
-
+    
     public function setDisponible(bool $disponible): static
     {
-        $this->disponible = $disponible;
-        return $this;
-    }
+    $this->disponible = $disponible;
+    return $this; // 🔥 Retourne l'instance de Produit
 }
+}
+
 

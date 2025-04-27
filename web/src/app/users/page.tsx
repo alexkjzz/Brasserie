@@ -1,70 +1,172 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import UtilisateurTable from "@/components/UtilisateurTable";
+import UtilisateurModal from "@/components/UtilisateurModal";
 
-interface Client {
+interface Utilisateur {
     id: number;
     nom: string;
+    prenom: string;
     email: string;
-    telephone: string;
-    inscritLe: string;
 }
 
-export default function ClientsEnregistres() {
-    const [clients, setClients] = useState<Client[]>([]);
+export default function Utilisateur() {
+    const [users, setUsers] = useState<Utilisateur[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [modalOpen, setModalOpen] = useState(false);
+    const [editingUser, setEditingUser] = useState<Utilisateur | null>(null);
+    const [formData, setFormData] = useState<Omit<Utilisateur, "id">>({
+        nom: "",
+        prenom: "",
+        email: ""
+    });
 
+    // 🔥 Fetch des utilisateurs avec authentification JWT
     useEffect(() => {
-        setClients([
-            { id: 1, nom: "Jean Dupont", email: "jean.dupont@example.com", telephone: "+33 6 12 34 56 78", inscritLe: "2025-01-10" },
-            { id: 2, nom: "Alice Durand", email: "alice.durand@example.com", telephone: "+33 6 98 76 54 32", inscritLe: "2025-03-22" },
-            { id: 3, nom: "Marc Leblanc", email: "marc.leblanc@example.com", telephone: "+33 7 65 43 21 09", inscritLe: "2025-04-05" },
-        ]);
+        const fetchUtilisateurs = async () => {
+            try {
+                const token = localStorage.getItem("jwtToken");
+                if (!token) throw new Error("Token JWT manquant, veuillez vous reconnecter.");
+
+                const response = await fetch("http://127.0.0.1:8000/api/utilisateur/all", {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`,
+                    },
+                });
+
+                if (response.status === 401) throw new Error("Authentification requise.");
+                if (!response.ok) throw new Error("Erreur lors de la récupération des utilisateurs.");
+
+                const data = await response.json();
+                setUsers(data);
+            } catch (err) {
+                setError(err instanceof Error ? err.message : "Erreur inconnue.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchUtilisateurs();
     }, []);
+
+    // 🔄 Gestion des changements dans le formulaire
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFormData({ 
+            ...formData, 
+            [e.target.name]: e.target.value
+        });
+    };
+
+    // 🛠 Ajouter ou modifier un utilisateur
+    const handleSave = async () => {
+        const token = localStorage.getItem("jwtToken");
+        if (!token) return alert("Token JWT requis, veuillez vous reconnecter.");
+
+        const method = editingUser ? "PUT" : "POST";
+        const url = editingUser 
+            ? `http://127.0.0.1:8000/api/utilisateur/${editingUser.id}`  // ✅ Correction du endpoint `PUT`
+            : "http://127.0.0.1:8000/api/utilisateur";
+
+        try {
+            const response = await fetch(url, {
+                method,
+                headers: { 
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`,
+                },
+                body: JSON.stringify(formData),
+            });
+
+            if (response.status === 401) throw new Error("Authentification requise.");
+            if (!response.ok) throw new Error("Erreur lors de la sauvegarde.");
+
+            setModalOpen(false);
+            setEditingUser(null);
+            setFormData({ nom: "", prenom: "", email: "" });
+
+            // 🔄 Re-fetch des utilisateurs après modification
+            const updatedResponse = await fetch("http://127.0.0.1:8000/api/utilisateur/all", {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            const updatedData = await updatedResponse.json();
+            setUsers(updatedData);
+        } catch (err) {
+            console.error(err);
+            setError(err instanceof Error ? err.message : "Erreur inconnue.");
+        }
+    };
+
+    // ❌ Supprimer un utilisateur
+    const handleDelete = async (id: number) => {
+        const token = localStorage.getItem("jwtToken");
+        if (!token) return alert("Token JWT requis, veuillez vous reconnecter.");
+
+        try {
+            const response = await fetch(`http://127.0.0.1:8000/api/utilisateur/delete/${id}`, {
+                method: "DELETE",
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+
+            if (response.status === 401) throw new Error("Authentification requise.");
+            if (!response.ok) throw new Error("Erreur lors de la suppression.");
+
+            setUsers(users.filter(user => user.id !== id));
+        } catch (err) {
+            console.error(err);
+            setError(err instanceof Error ? err.message : "Erreur inconnue.");
+        }
+    };
+
+    // 🛠 Ouvrir le modal pour ajouter/modifier
+    const openModal = (user?: Utilisateur) => {
+        setEditingUser(user || null);
+        setFormData(user || { nom: "", prenom: "", email: "" });
+        setModalOpen(true);
+    };
+
+    // ❌ Fermer le modal
+    const closeModal = () => {
+        setModalOpen(false);
+        setEditingUser(null);
+    };
 
     return (
         <main className="flex justify-center items-start w-full p-12">
             <div className="gap-10 w-full max-w-6xl mt-12 flex flex-col items-start">
-
+                
                 <section className="text-left w-full border-b border-stone-500 pb-6">
-                    <h1 className="text-4xl font-extrabold text-white">Clients Enregistrés</h1>
+                    <h1 className="text-4xl font-extrabold text-white">Gestion des Utilisateurs</h1>
                     <p className="text-stone-300 mt-3 text-lg leading-relaxed max-w-3xl">
-                        Liste des clients inscrits dans l'application.
+                        Ajoutez, modifiez ou supprimez les utilisateurs enregistrés.
                     </p>
                 </section>
 
                 <section className="w-full bg-stone-800 p-6 rounded-lg shadow-lg">
-                    <h2 className="text-2xl font-bold text-white border-b border-stone-500 pb-3">Liste des Clients</h2>
-
-                    <div className="overflow-x-auto">
-                        <table className="w-full mt-4 border-collapse border border-stone-500 table-fixed">
-                            <thead className="bg-stone-700 text-white">
-                                <tr>
-                                    <th className="p-3 border border-stone-500 w-[25%]">Nom</th>
-                                    <th className="p-3 border border-stone-500 w-[25%]">Email</th>
-                                    <th className="p-3 border border-stone-500 w-[20%]">Téléphone</th>
-                                    <th className="p-3 border border-stone-500 w-[20%]">Inscrit le</th>
-                                </tr>
-                            </thead>
-
-                            <tbody>
-                                {clients.length > 0 ? (
-                                    clients.map((client) => (
-                                        <tr key={client.id} className="bg-stone-600 text-white hover:bg-stone-500 transition text-center">
-                                            <td className="p-3 border border-stone-500">{client.nom}</td>
-                                            <td className="p-3 border border-stone-500">{client.email}</td>
-                                            <td className="p-3 border border-stone-500">{client.telephone}</td>
-                                            <td className="p-3 border border-stone-500">{client.inscritLe}</td>
-                                        </tr>
-                                    ))
-                                ) : (
-                                    <tr>
-                                        <td colSpan={4} className="p-3 text-stone-300 text-center">Aucun client enregistré.</td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                    <h2 className="text-2xl font-bold text-white border-b border-stone-500 pb-3">Liste des Utilisateurs</h2>
+                    {loading ? (
+                        <p className="text-stone-300 text-center mt-4">Chargement des utilisateurs...</p>
+                    ) : error ? (
+                        <p className="text-red-400 text-center mt-4">{error}</p>
+                    ) : (
+                        <UtilisateurTable users={users} isEditable={true} onEdit={openModal} onDelete={handleDelete} />
+                    )}
                 </section>
+
+                {/* 🔥 Modal pour ajouter/modifier un utilisateur */}
+                {modalOpen && (
+                    <UtilisateurModal 
+                        user={editingUser} 
+                        formData={formData} 
+                        isOpen={modalOpen}
+                        onChange={handleChange} 
+                        onSave={handleSave} 
+                        onClose={closeModal} 
+                    />
+                )}
 
             </div>
         </main>

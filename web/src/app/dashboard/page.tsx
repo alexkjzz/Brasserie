@@ -13,23 +13,23 @@ interface Produit {
     disponible: boolean;
 }
 
-export default function Home() {
+export default function Dashboard() {
     const [produits, setProduits] = useState<Produit[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        let isMounted = true; // 🔥 Empêche l'exécution multiple
+        let isMounted = true; // Empêche l'exécution multiple
         
         const fetchProduits = async () => {
             try {
-                const token = localStorage.getItem("jwtToken"); // 🔐 Récupère le token JWT
+                const token = localStorage.getItem("jwtToken"); // Récupère le token JWT
         
                 const response = await fetch("http://127.0.0.1:8000/api/produit", {
                     method: "GET",
                     headers: {
                         "Content-Type": "application/json",
-                        "Authorization": `Bearer ${token}`, // 🔥 Ajoute le token JWT dans les headers
+                        "Authorization": `Bearer ${token}`, // Ajoute le token JWT dans les headers
                     },
                 });
         
@@ -48,22 +48,23 @@ export default function Home() {
     
         fetchProduits();
     
-        return () => { isMounted = false; }; 
+        return () => { isMounted = false; };  // Nettoyage pour éviter les requêtes doublées
     }, []);
     
 
     return (
+        <AdminRedirect>
             <main className="flex justify-center items-start w-full p-12">
                 <div className="gap-10 w-full max-w-6xl mt-12 flex flex-col items-start">
                     
                     <section className="text-left w-full border-b border-stone-500 pb-6">
-                        <h1 className="text-4xl font-extrabold text-white">Vitrine</h1>
+                        <h1 className="text-4xl font-extrabold text-white">Dashboard</h1>
                         <p className="text-stone-300 mt-3 text-lg leading-relaxed max-w-3xl">
-                            Aperçu de nos produits disponibles.
+                            Aperçu des produits disponibles pour les invités.
                         </p>
                     </section>
 
-                    <section className="w-full mb-20 bg-stone-800 p-6 rounded-lg shadow-lg">
+                    <section className="w-full bg-stone-800 p-6 rounded-lg shadow-lg mb-20"> {/* 🔥 Ajout du margin-bottom */}
                         <h2 className="text-2xl font-bold text-white border-b border-stone-500 pb-3">Liste des Produits</h2>
 
                         {loading ? (
@@ -71,11 +72,12 @@ export default function Home() {
                         ) : error ? (
                             <p className="text-red-400 text-center mt-4">{error}</p>
                         ) : (
-                          <ProductTable produits={produits} />
+                            <ProductTable produits={produits} />
                         )}
                     </section>
 
                 </div>
             </main>
+        </AdminRedirect>
     );
 }
