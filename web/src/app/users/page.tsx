@@ -3,45 +3,41 @@
 import { useState, useEffect } from "react";
 import UtilisateurTable from "@/components/UtilisateurTable";
 import UtilisateurModal from "@/components/UtilisateurModal";
+import { fetchUtilisateurs, saveUtilisateur, deleteUtilisateur } from "@/services/utilisateurApi";
+import { Utilisateur } from "@/models/types";
 
-interface Utilisateur {
-    id: number;
-    nom: string;
-    prenom: string;
-    email: string;
-}
 
-export default function Utilisateur() {
+export default function UtilisateurPage() {
     const [users, setUsers] = useState<Utilisateur[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [modalOpen, setModalOpen] = useState(false);
+
     const [editingUser, setEditingUser] = useState<Utilisateur | null>(null);
     const [formData, setFormData] = useState<Omit<Utilisateur, "id">>({
         nom: "",
         prenom: "",
         email: ""
     });
+    
+    const [modalOpen, setModalOpen] = useState(false); // ✅ Gestion locale du modal
 
-    // 🔥 Fetch des utilisateurs avec authentification JWT
+    const openModal = (user?: Utilisateur) => {
+        setEditingUser(user ?? null); // ✅ Stocke l'utilisateur en cours d'édition
+        setFormData(user ?? { nom: "", prenom: "", email: "" }); // ✅ Remplit les champs avec les données existantes
+        setModalOpen(true); // ✅ Ouvre le modal
+    };
+    
+    const closeModal = () => {
+        setModalOpen(false); // ✅ Ferme le modal
+        setEditingUser(null); // ✅ Réinitialise l'état d'édition
+    };
+    
     useEffect(() => {
-        const fetchUtilisateurs = async () => {
+        const fetchData = async () => {
             try {
                 const token = localStorage.getItem("jwtToken");
-                if (!token) throw new Error("Token JWT manquant, veuillez vous reconnecter.");
-
-                const response = await fetch("http://127.0.0.1:8000/api/utilisateur/all", {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${token}`,
-                    },
-                });
-
-                if (response.status === 401) throw new Error("Authentification requise.");
-                if (!response.ok) throw new Error("Erreur lors de la récupération des utilisateurs.");
-
-                const data = await response.json();
+                if (!token) throw new Error("Token JWT requis.");
+                const data = await fetchUtilisateurs(token);
                 setUsers(data);
             } catch (err) {
                 setError(err instanceof Error ? err.message : "Erreur inconnue.");
@@ -50,94 +46,43 @@ export default function Utilisateur() {
             }
         };
 
-        fetchUtilisateurs();
+        fetchData();
     }, []);
 
-    // 🔄 Gestion des changements dans le formulaire
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData({ 
-            ...formData, 
-            [e.target.name]: e.target.value
-        });
-    };
-
-    // 🛠 Ajouter ou modifier un utilisateur
     const handleSave = async () => {
-        const token = localStorage.getItem("jwtToken");
-        if (!token) return alert("Token JWT requis, veuillez vous reconnecter.");
-
-        const method = editingUser ? "PUT" : "POST";
-        const url = editingUser 
-            ? `http://127.0.0.1:8000/api/utilisateur/${editingUser.id}`  // ✅ Correction du endpoint `PUT`
-            : "http://127.0.0.1:8000/api/utilisateur";
-
         try {
-            const response = await fetch(url, {
-                method,
-                headers: { 
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`,
-                },
-                body: JSON.stringify(formData),
-            });
-
-            if (response.status === 401) throw new Error("Authentification requise.");
-            if (!response.ok) throw new Error("Erreur lors de la sauvegarde.");
-
-            setModalOpen(false);
-            setEditingUser(null);
-            setFormData({ nom: "", prenom: "", email: "" });
-
-            // 🔄 Re-fetch des utilisateurs après modification
-            const updatedResponse = await fetch("http://127.0.0.1:8000/api/utilisateur/all", {
-                headers: { "Authorization": `Bearer ${token}` }
-            });
-            const updatedData = await updatedResponse.json();
-            setUsers(updatedData);
+            const token = localStorage.getItem("jwtToken");
+            if (!token) throw new Error("Token JWT requis.");
+            if (!editingUser) throw new Error("Impossible de modifier un utilisateur sans sélection."); 
+    
+            await saveUtilisateur(token, formData, editingUser.id); 
+            closeModal();
+            const data = await fetchUtilisateurs(token);
+            setUsers(data);
         } catch (err) {
             console.error(err);
-            setError(err instanceof Error ? err.message : "Erreur inconnue.");
         }
     };
+    
 
-    // ❌ Supprimer un utilisateur
     const handleDelete = async (id: number) => {
-        const token = localStorage.getItem("jwtToken");
-        if (!token) return alert("Token JWT requis, veuillez vous reconnecter.");
-
         try {
-            const response = await fetch(`http://127.0.0.1:8000/api/utilisateur/delete/${id}`, {
-                method: "DELETE",
-                headers: { "Authorization": `Bearer ${token}` }
-            });
-
-            if (response.status === 401) throw new Error("Authentification requise.");
-            if (!response.ok) throw new Error("Erreur lors de la suppression.");
-
+            const token = localStorage.getItem("jwtToken");
+            if (!token) throw new Error("Token JWT requis.");
+            await deleteUtilisateur(token, id);
             setUsers(users.filter(user => user.id !== id));
         } catch (err) {
             console.error(err);
-            setError(err instanceof Error ? err.message : "Erreur inconnue.");
         }
     };
 
-    // 🛠 Ouvrir le modal pour ajouter/modifier
-    const openModal = (user?: Utilisateur) => {
-        setEditingUser(user || null);
-        setFormData(user || { nom: "", prenom: "", email: "" });
-        setModalOpen(true);
-    };
-
-    // ❌ Fermer le modal
-    const closeModal = () => {
-        setModalOpen(false);
-        setEditingUser(null);
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
     return (
         <main className="flex justify-center items-start w-full p-12">
             <div className="gap-10 w-full max-w-6xl mt-12 flex flex-col items-start">
-                
                 <section className="text-left w-full border-b border-stone-500 pb-6">
                     <h1 className="text-4xl font-extrabold text-white">Gestion des Utilisateurs</h1>
                     <p className="text-stone-300 mt-3 text-lg leading-relaxed max-w-3xl">
@@ -156,7 +101,6 @@ export default function Utilisateur() {
                     )}
                 </section>
 
-                {/* 🔥 Modal pour ajouter/modifier un utilisateur */}
                 {modalOpen && (
                     <UtilisateurModal 
                         user={editingUser} 
@@ -167,7 +111,6 @@ export default function Utilisateur() {
                         onClose={closeModal} 
                     />
                 )}
-
             </div>
         </main>
     );

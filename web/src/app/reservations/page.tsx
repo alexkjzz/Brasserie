@@ -5,32 +5,27 @@ import { PlusCircle } from "lucide-react";
 import AdminRedirect from "@/components/AdminRedirect";
 import ReservationTable from "@/components/ReservationTable";
 import ReservationModal from "@/components/ReservationModal";
-
-interface Reservation {
-    id: number;
-    emailUtilisateur: string; // ✅ On récupère l'email de l'utilisateur
-    nomUtilisateur: string; // ✅ Ajout du nom de l'utilisateur
-    prenomUtilisateur: string; // ✅ Ajout du prénom de l'utilisateur
-    date: string;
-    heure: string;
-    produitsDifferents: number;
-    status: "Pending" | "En cours" | "Expédié" | "Fini" | "Annulé";
-}
-
+import { Produit, Reservation, Utilisateur } from "@/models/types";
+import { fetchAllReservations, saveReservation, deleteReservation } from "@/services/reservationApi";
+import { fetchUtilisateurs } from "@/services/utilisateurApi";
+import { fetchProduits } from "@/services/produitApi";
 
 export default function Reservations() {
     const [reservations, setReservations] = useState<Reservation[]>([]);
     const [modalOpen, setModalOpen] = useState(false);
     const [editingReservation, setEditingReservation] = useState<Reservation | null>(null);
-    const [formData, setFormData] = useState<Partial<Reservation>>({ 
-        nomUtilisateur: "",  // ✅ Nom de l'utilisateur
-        prenomUtilisateur: "", // ✅ Prénom de l'utilisateur
-        emailUtilisateur: "",  // ✅ Email de l'utilisateur
-        date: "",
-        heure: "",
-        produitsDifferents: 1,
+    const [utilisateurs, setUtilisateurs] = useState<Utilisateur[]>([]);
+    const [produits, setProduits] = useState<Produit[]>([]);
+
+    const [formData, setFormData] = useState<Partial<Reservation>>({
+        emailUtilisateur: "",
+        dateReservation: new Date().toISOString().slice(0, 16),
+        produits: [],
         status: "Pending"
     });
+    
+    
+    
 
 
     // 🔥 Fetch des réservations de l'utilisateur authentifié
@@ -39,109 +34,117 @@ export default function Reservations() {
             try {
                 const token = localStorage.getItem("jwtToken");
                 if (!token) throw new Error("Token JWT requis, veuillez vous reconnecter.");
-
-                const response = await fetch("http://127.0.0.1:8000/api/reservation/utilisateur", { 
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${token}`, 
-                    },
-                });
-
-                if (!response.ok) throw new Error("Erreur lors de la récupération des réservations.");
-                const data = await response.json();
+    
+                const data = await fetchAllReservations(token); // ✅ Utilise `fetchAllReservations`
                 setReservations(data);
             } catch (err) {
                 console.error(err);
             }
         };
-
+    
         fetchReservations();
     }, []);
 
-    // 🔄 Gestion des changements dans le formulaire
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
+
+    const openModal = async (reservation?: Reservation) => {
+        setModalOpen(true);
+        setEditingReservation(reservation || null);
+        setFormData(reservation || { 
+            emailUtilisateur: "",  
+            dateReservation: new Date().toISOString().slice(0, 16),
+            produits: [], 
+            status: "Pending"
+        });
     
+        try {
+            const token = localStorage.getItem("jwtToken");
+            if (!token) return alert("Token JWT requis, veuillez vous reconnecter.");
+    
+            const utilisateursData = await fetchUtilisateurs(token);
+            const produitsData = await fetchProduits(token);
+            setUtilisateurs(utilisateursData);
+            setProduits(produitsData);
+        } catch (err) {
+            console.error("Erreur lors de la récupération des données :", err);
+        }
+    };
+
     const closeModal = () => {
         setModalOpen(false);
         setEditingReservation(null);
         setFormData({ 
-            nomUtilisateur: "",  
-            prenomUtilisateur: "", 
             emailUtilisateur: "",  
-            date: "", 
-            heure: "", 
-            produitsDifferents: 1, 
+            dateReservation: new Date().toISOString().slice(0, 16),
+            produits: [], // ✅ Remplace `produitsDifferents` par un tableau vide
             status: "Pending"
         });
     };
     
     
-    // 🛠 Ajouter ou modifier une réservation
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        setFormData((prevForm) => ({
+            ...prevForm,
+            [e.target.name]: e.target.type === "datetime-local" ? new Date(e.target.value).toISOString() : e.target.value // ✅ Corrige la date
+        }));
+    };
+    
+    
     const handleSave = async () => {
         const token = localStorage.getItem("jwtToken");
-        if (!token) return alert("Token JWT requis, veuillez vous reconnecter.");
-
+        if (!token) return alert("Token JWT requis.");
+        if (!formData.emailUtilisateur) return alert("Veuillez entrer un email.");
+        if (!formData.produits || formData.produits.length === 0) return alert("Veuillez sélectionner au moins un produit.");
+    
         const method = editingReservation ? "PUT" : "POST";
-        const url = editingReservation 
-            ? `http://127.0.0.1:8000/api/reservation/${editingReservation.id}` 
-            : "http://127.0.0.1:8000/api/reservation";
+        await saveReservation(token, formData, method, editingReservation?.id);
+    
+        closeModal();
+        const data = await fetchAllReservations(token);
+        setReservations(data);
+    };
+    
+    
+    
+    
 
+    const handleDelete = async (id: number) => { // ✅ Accepte maintenant un `id`
         try {
-            const response = await fetch(url, {
-                method,
-                headers: { 
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`,
-                },
-                body: JSON.stringify(formData),
-            });
-
-            if (!response.ok) throw new Error("Erreur lors de la sauvegarde.");
-            closeModal();
-
-            // 🔄 Re-fetch des réservations après modification
-            const updatedResponse = await fetch("http://127.0.0.1:8000/api/reservation/utilisateur", {
-                headers: { "Authorization": `Bearer ${token}` }
-            });
-            const updatedData = await updatedResponse.json();
-            setReservations(updatedData);
+            const token = localStorage.getItem("jwtToken");
+            if (!token) throw new Error("Token JWT requis.");
+                const reservation = reservations.find((res) => res.id === id);
+            if (!reservation) throw new Error("Réservation introuvable.");
+    
+            await deleteReservation(token, id, reservation.emailUtilisateur); 
+            const data = await fetchAllReservations(token);
+            setReservations(data);
         } catch (err) {
-            console.error(err);
+            console.error("Erreur lors de la suppression :", err);
         }
     };
+    
 
-    // ❌ Supprimer une réservation
-    const handleDelete = async (id: number) => {
-        const token = localStorage.getItem("jwtToken");
-        if (!token) return alert("Token JWT requis, veuillez vous reconnecter.");
-
-        try {
-            const response = await fetch(`http://127.0.0.1:8000/api/reservation/${id}`, {
-                method: "DELETE",
-                headers: { "Authorization": `Bearer ${token}` }
-            });
-
-            if (!response.ok) throw new Error("Erreur lors de la suppression.");
-            setReservations(reservations.filter(res => res.id !== id));
-        } catch (err) {
-            console.error(err);
-        }
+    const handleProductChange = (produit: Produit, checked: boolean) => {
+        setFormData((prevForm) => {
+            const produitsSelectionnes = prevForm.produits || [];
+    
+            const newProduits = checked
+                ? [...produitsSelectionnes, { id: produit.id, nom: produit.nom, quantite: 1 }]
+                : produitsSelectionnes.filter((p) => p.id !== produit.id);
+    
+            return { ...prevForm, produits: newProduits };
+        });
     };
-
-    const openModal = (reservation?: Reservation) => {
-        setModalOpen(true);
-        setEditingReservation(reservation || null);
-        setFormData(reservation || { 
-            nomUtilisateur: "",  
-            prenomUtilisateur: "", 
-            emailUtilisateur: "",  
-            date: "", 
-            heure: "", 
-            produitsDifferents: 1, 
-            status: "Pending"
+    
+    
+    const handleQuantityChange = (produitId: number, quantite: number) => {
+        setFormData((prevForm) => {
+            const produitsSelectionnes = prevForm.produits || [];
+    
+            const newProduits = produitsSelectionnes.map((prod) =>
+                prod.id === produitId ? { ...prod, quantite } : prod
+            );
+    
+            return { ...prevForm, produits: newProduits };
         });
     };
     
@@ -158,19 +161,30 @@ export default function Reservations() {
                             Liste de vos réservations effectuées via l’application.
                         </p>
                     </div>
-                    <button onClick={() => openModal()} className="flex items-center text-green-400 hover:text-green-500 transition">
-                        <PlusCircle size={20} className="mr-2" />
-                        Ajouter une réservation
-                    </button>
                 </section>
 
                 <section className="w-full bg-stone-800 p-6 rounded-lg shadow-lg">
                     <h2 className="text-2xl font-bold text-white border-b border-stone-500 pb-3">Réservations en cours</h2>
+                    <button onClick={() => openModal()} className="flex items-center text-green-400 hover:text-green-500 transition mt-4">
+                        <PlusCircle size={20} className="mr-2" />
+                        Ajouter une réservation
+                    </button>
                     <ReservationTable reservations={reservations} onEdit={openModal} onDelete={handleDelete} />
                 </section>
 
                 {/* 🔥 Modal pour ajouter/modifier une réservation */}
-                <ReservationModal isOpen={modalOpen} reservation={editingReservation} formData={formData} onChange={handleChange} onSave={handleSave} onClose={closeModal} />
+                <ReservationModal
+                    isOpen={modalOpen}
+                    reservation={editingReservation}
+                    formData={formData}
+                    utilisateurs={utilisateurs}
+                    produits={produits}
+                    onChange={handleChange}
+                    onProductChange={handleProductChange}
+                    onQuantityChange={handleQuantityChange} // ✅ Ajout ici
+                    onSave={handleSave}
+                    onClose={closeModal}
+                />
             </div>
         </main>
         </AdminRedirect>

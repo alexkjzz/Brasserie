@@ -1,16 +1,7 @@
 "use client";
 
 import { FaEdit, FaTrash } from "react-icons/fa";
-
-interface Produit {
-    id: number;
-    nom: string;
-    description: string;
-    prix: number;
-    quantite: number;
-    disponible: boolean;
-}
-
+import { Produit } from "@/models/types";
 interface ProductTableProps {
     produits: Produit[];
     isEditable?: boolean; // 🔥 Permet de masquer ou afficher les boutons

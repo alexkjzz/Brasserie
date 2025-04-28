@@ -2,26 +2,18 @@
 
 import AdminRedirect from "@/components/AdminRedirect";
 import ProductTable from "@/components/ProductTable";
-import { Check, PlusCircle, X } from "lucide-react";
+import { PlusCircle} from "lucide-react";
 import { useState, useEffect } from "react";
-import { FaBeer, FaPlus } from "react-icons/fa";
+import { fetchProduits, saveProduit, deleteProduit } from "@/services/produitApi";
+import { Produit } from "@/models/types";
+import ProductModal from "@/components/ProductModal";
 
-interface Produit {
-    id: number;
-    nom: string;
-    description: string;
-    prix: number;
-    quantite: number;
-    disponible: boolean;
-}
 
 export default function Products() {
     const [produits, setProduits] = useState<Produit[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [modalOpen, setModalOpen] = useState(false);
     const [editingProduit, setEditingProduit] = useState<Produit | null>(null);
-    const [editingField, setEditingField] = useState<string>(""); // 🔥 Stocke le champ modifié
     const [formData, setFormData] = useState<Omit<Produit, "id">>({
         nom: "",
         description: "",
@@ -30,23 +22,26 @@ export default function Products() {
         disponible: false,
     });
 
-    // 🔥 Fetch des produits depuis l'API
+    const [modalOpen, setModalOpen] = useState(false); // ✅ Gestion locale du modal
+
+    const openModal = (produit?: Produit) => {
+        setEditingProduit(produit ?? null);
+        setFormData(produit ?? { nom: "", description: "", prix: 0, quantite: 0, disponible: false }); // ✅ Remplit les données si édition
+        setModalOpen(true); // ✅ Ouvre le modal
+    };
+    
+    const closeModal = () => {
+        setModalOpen(false); // ✅ Ferme le modal
+        setEditingProduit(null); // ✅ Réinitialise l'état d'édition
+    };
+    
+
     useEffect(() => {
-        const fetchProduits = async () => {
+        const fetchData = async () => {
             try {
                 const token = localStorage.getItem("jwtToken");
-
-                const response = await fetch("http://127.0.0.1:8000/api/produit", {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${token}`,
-                    },
-                });
-
-                if (!response.ok) throw new Error("Erreur lors de la récupération des produits.");
-
-                const data = await response.json();
+                if (!token) throw new Error("Token JWT requis.");
+                const data = await fetchProduits(token);
                 setProduits(data);
             } catch (err) {
                 setError(err instanceof Error ? err.message : "Erreur inconnue.");
@@ -54,76 +49,46 @@ export default function Products() {
                 setLoading(false);
             }
         };
-
-        fetchProduits();
+    
+        fetchData();
     }, []);
-
-    // 🔄 Gestion des changements dans le formulaire
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const rawValue = e.target.value;
-        const value = e.target.name === "quantite" || e.target.name === "prix" 
-            ? Number(rawValue) || 0  
-            : rawValue;
-
-        setEditingField(e.target.name); // ✅ Mets à jour le champ modifié
-        setFormData({ 
-            ...formData, 
-            [e.target.name]: value,
-            disponible: e.target.name === "quantite" ? Number(value) > 0 : formData.disponible,
-        });
-    };
-
-    // 🛠 Ajouter ou modifier un produit
+    
     const handleSave = async () => {
-        const method = editingProduit ? "PUT" : "POST";
-        const url = editingProduit ? `http://127.0.0.1:8000/api/produit/${editingProduit.id}` : "http://127.0.0.1:8000/api/produit/";
-
         try {
-            const response = await fetch(url, {
-                method,
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(formData),
-            });
-
-            if (!response.ok) throw new Error("Erreur lors de la sauvegarde.");
-
-            setModalOpen(false);
-            setEditingProduit(null);
-            setEditingField(""); // ✅ Réinitialise le champ après sauvegarde
-            setFormData({ nom: "", description: "", prix: 0, quantite: 0, disponible: false });
-
-            // 🔄 Re-fetch des produits après modification
-            const updatedResponse = await fetch("http://127.0.0.1:8000/api/produit/");
-            const updatedData = await updatedResponse.json();
-            setProduits(updatedData);
+            const token = localStorage.getItem("jwtToken");
+            if (!token) throw new Error("Token JWT requis.");
+    
+            const method = editingProduit ? "PUT" : "POST";
+            await saveProduit(token, formData, method, editingProduit?.id);
+            closeModal();
+            const data = await fetchProduits(token);
+            setProduits(data);
         } catch (err) {
             console.error(err);
         }
     };
-
-    // ❌ Supprimer un produit
+    
     const handleDelete = async (id: number) => {
         try {
-            await fetch(`http://127.0.0.1:8000/api/produit/${id}`, { method: "DELETE" });
+            const token = localStorage.getItem("jwtToken");
+            if (!token) throw new Error("Token JWT requis.");
+            await deleteProduit(token, id);
             setProduits(produits.filter(produit => produit.id !== id));
         } catch (err) {
             console.error(err);
         }
     };
-
-    // 🛠 Ouvrir le modal pour ajouter/modifier
-    const openModal = (produit?: Produit) => {
-        setEditingProduit(produit || null);
-        setEditingField(""); // ✅ Réinitialise le champ affiché
-        setFormData(produit || { nom: "", description: "", prix: 0, quantite: 0, disponible: false });
-        setModalOpen(true);
-    };
-
-    // ❌ Fermer le modal
-    const closeModal = () => {
-        setModalOpen(false);
-        setEditingProduit(null);
-        setEditingField(""); // ✅ Réinitialise le champ affiché
+    
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const rawValue = e.target.value;
+        const value = e.target.name === "quantite" || e.target.name === "prix"
+            ? Number(rawValue) || 0  
+            : rawValue;
+    
+        setFormData(prevData => ({
+            ...prevData, 
+            [e.target.name]: value
+        }));
     };
 
     return (
@@ -160,38 +125,7 @@ export default function Products() {
 
                     {/* 🔥 Modal pour ajouter/modifier un produit */}
                     {modalOpen && (
-                        <div className="fixed inset-0 flex items-center justify-center bg-black/30 backdrop-blur-md">
-                            <div className="bg-stone-900 p-8 rounded-lg shadow-lg w-[700px]"> {/* 🔥 Largeur augmentée */}
-                                <h2 className="text-2xl font-bold text-white mb-6">
-                                    {editingProduit ? `Modifier le produit "${formData.nom}"` : "Ajouter un nouveau produit"}
-                                </h2>
-
-                                <div className="space-y-4"> {/* 🔥 Ajout d'espace entre les inputs */}
-                                    <label className="block text-white font-medium">Nom du produit</label>
-                                    <input type="text" name="nom" value={formData.nom} onChange={handleChange} className="w-full p-3 rounded-lg bg-stone-800 text-white border border-stone-600 focus:ring-2 focus:ring-blue-500" />
-
-                                    <label className="block text-white font-medium">Description</label>
-                                    <textarea name="description" value={formData.description} onChange={handleChange} className="w-full p-3 rounded-lg bg-stone-800 text-white border border-stone-600 h-40 focus:ring-2 focus:ring-blue-500" />
-
-                                    <label className="block text-white font-medium">Prix (€)</label>
-                                    <input type="number" name="prix" value={formData.prix} onChange={handleChange} className="w-full p-3 rounded-lg bg-stone-800 text-white border border-stone-600 focus:ring-2 focus:ring-blue-500" />
-
-                                    <label className="block text-white font-medium">Quantité</label>
-                                    <input type="number" name="quantite" value={formData.quantite} onChange={handleChange} className="w-full p-3 rounded-lg bg-stone-800 text-white border border-stone-600 focus:ring-2 focus:ring-blue-500" />
-                                </div>
-
-                                <div className="flex justify-end gap-4 mt-6">
-                                    <button onClick={handleSave} className="p-2">
-                                        <Check size={28} /> {/* ✅ Icône "Enregistrer" */}
-                                    </button>
-
-                                    <button onClick={closeModal} className="p-2">
-                                        <X size={28} /> {/* ❌ Icône "Annuler" */}
-                                    </button>
-                                </div>
-
-                            </div>
-                        </div>
+                        <ProductModal isOpen={modalOpen} produit={editingProduit} formData={formData} onChange={handleChange} onSave={handleSave} onClose={closeModal} />
                     )}
                 </div>
             </main>

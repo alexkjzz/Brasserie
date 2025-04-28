@@ -1,13 +1,7 @@
 "use client";
 
 import { Check, X } from "lucide-react";
-
-interface Utilisateur {
-    id: number;
-    nom: string;
-    prenom: string;
-    email: string;
-}
+import type { Utilisateur } from "@/models/types";
 
 interface UtilisateurModalProps {
     user: Utilisateur | null;
@@ -22,9 +16,9 @@ export default function UtilisateurModal({ user, formData, isOpen, onClose, onCh
     return isOpen ? (
         <div className="fixed inset-0 flex items-center justify-center bg-black/30 backdrop-blur-md">
             <div className="bg-stone-900 p-8 rounded-lg shadow-lg w-[500px]">
-                <h2 className="text-2xl font-bold text-white mb-6">
-                    {user ? `Modifier l'utilisateur "${formData.nom}"` : "Ajouter un utilisateur"}
-                </h2>
+            <h2 className="text-2xl font-bold text-white mb-6">
+                {user ? `Modifier l'utilisateur "${user.nom}"` : "Ajouter un utilisateur"}
+            </h2>
 
                 <div className="space-y-4">
                     <label className="block text-white font-medium">Nom</label>

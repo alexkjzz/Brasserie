@@ -1,27 +1,32 @@
 "use client";
 
-interface Reservation {
-    id: number;
-    emailUtilisateur: string; // ✅ Récupère l'email de l'utilisateur
-    nomUtilisateur: string; // ✅ Ajout du nom de l'utilisateur
-    prenomUtilisateur: string; // ✅ Ajout du prénom de l'utilisateur
-    date: string;
-    heure: string;
-    produitsDifferents: number;
-    status: "Pending" | "En cours" | "Expédié" | "Fini" | "Annulé";
-}
+import { Check, X } from "lucide-react";
+import { Reservation, Utilisateur, Produit } from "@/models/types";
 
 interface Props {
     isOpen: boolean;
-    reservation?: Reservation | null;  // ✅ Ajout de `| null` pour éviter l'erreur
+    reservation?: Reservation | null;
     formData: Partial<Reservation>;
+    utilisateurs: Utilisateur[];
+    produits: Produit[];
     onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
+    onProductChange: (produit: Produit, checked: boolean) => void; onQuantityChange: (produitId: number, quantite: number) => void;
     onSave: () => void;
     onClose: () => void;
 }
 
-
-export default function ReservationModal({ isOpen, reservation, formData, onChange, onSave, onClose }: Props) {
+export default function ReservationModal({
+    isOpen,
+    reservation,
+    formData,
+    utilisateurs,
+    produits,
+    onChange,
+    onProductChange,
+    onQuantityChange,
+    onSave,
+    onClose
+}: Props) {
     if (!isOpen) return null;
 
     return (
@@ -31,34 +36,79 @@ export default function ReservationModal({ isOpen, reservation, formData, onChan
                     {reservation ? "Modifier" : "Ajouter"} une réservation
                 </h2>
 
-                <label className="block text-white font-medium">Nom</label>
-                <input type="text" name="nomUtilisateur" value={formData.nomUtilisateur} onChange={onChange} className="w-full p-2 mb-2 rounded bg-stone-800 text-white border border-stone-600" />
+                {/* Sélection de l'utilisateur */}
+                {!reservation && (
+                    <>
+                        <select
+                            name="emailUtilisateur"
+                            value={formData.emailUtilisateur || ""}
+                            onChange={onChange}
+                            className="w-full p-2 mb-2 rounded bg-stone-800 text-white"
+                        >
+                            <option value="">Sélectionnez un utilisateur</option>
+                            {utilisateurs.map((user) => (
+                                <option key={user.id} value={user.email}>
+                                    {user.nom} {user.prenom}
+                                </option>
+                            ))}
+                        </select>
+                    </>
+                )}
 
-                <label className="block text-white font-medium">Prénom</label>
-                <input type="text" name="prenomUtilisateur" value={formData.prenomUtilisateur} onChange={onChange} className="w-full p-2 mb-2 rounded bg-stone-800 text-white border border-stone-600" />
+                {/* Sélection des produits */}
+                <label className="block text-white font-medium">Produits</label>
+                <div className="space-y-2 mb-4">
+                    {produits.map((produit) => {
+                        const selected = formData.produits?.find((p) => p.id === produit.id);
+                        return (
+                            <div key={produit.id} className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    checked={!!selected}
+                                    onChange={(e) => onProductChange(produit, e.target.checked)}
+                                />
+                                <span>{produit.nom} - {produit.prix}€</span>
+                                {selected && (
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        value={selected.quantite}
+                                        onChange={(e) => onQuantityChange(produit.id, Number(e.target.value))}
+                                        className="w-16 p-1 bg-stone-800 text-white text-center"
+                                    />
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
 
-                <label className="block text-white font-medium">Email</label>
-                <input type="email" name="emailUtilisateur" value={formData.emailUtilisateur} onChange={onChange} className="w-full p-2 mb-2 rounded bg-stone-800 text-white border border-stone-600" />
-
-                <label className="block text-white font-medium">Date</label>
-                <input type="date" name="date" value={formData.date} onChange={onChange} className="w-full p-2 mb-2 rounded bg-stone-800 text-white border border-stone-600" />
-
-                <label className="block text-white font-medium">Heure</label>
-                <input type="time" name="heure" value={formData.heure} onChange={onChange} className="w-full p-2 mb-2 rounded bg-stone-800 text-white border border-stone-600" />
-
-                <label className="block text-white font-medium">Nombre de produits</label>
-                <input type="number" name="produitsDifferents" value={formData.produitsDifferents} onChange={onChange} className="w-full p-2 mb-2 rounded bg-stone-800 text-white border border-stone-600" />
-
+                {/* Date et Heure */}
+                <label className="block text-white font-medium">Date et Heure</label>
+                <input
+                    type="datetime-local"
+                    name="dateReservation"
+                    value={formData.dateReservation ? formData.dateReservation.slice(0, 16) : ""} // ✅ Vérifie que la valeur existe
+                    onChange={onChange}
+                    className="w-full p-2 mb-2 rounded bg-stone-800 text-white"
+                />
                 <label className="block text-white font-medium">Statut</label>
-                <select name="status" value={formData.status} onChange={onChange} className="w-full p-2 mb-2 rounded bg-stone-700 text-white">
-                    {["Pending", "En cours", "Expédié", "Fini", "Annulé"].map((option) => (
-                        <option key={option} value={option}>{option}</option>
-                    ))}
+                <select
+                    name="status"
+                    value={formData.status}
+                    onChange={onChange}
+                    className="w-full p-2 mb-2 rounded bg-stone-800 text-white"
+                >
+                    <option value="Pending">Pending</option>
+                    <option value="En cours">En cours</option>
+                    <option value="Expédié">Expédié</option>
+                    <option value="Fini">Fini</option>
+                    <option value="Annulé">Annulé</option>
                 </select>
 
+
                 <div className="flex justify-end gap-4 mt-4">
-                    <button onClick={onSave} className="bg-green-500 text-white px-4 py-2 rounded-lg">Enregistrer</button>
-                    <button onClick={onClose} className="bg-red-500 text-white px-4 py-2 rounded-lg">Annuler</button>
+                    <button onClick={onSave} className="p-2"><Check size={28} /></button>
+                    <button onClick={onClose} className="p-2"><X size={28} /></button>
                 </div>
             </div>
         </div>

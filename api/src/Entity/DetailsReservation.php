@@ -7,13 +7,16 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: DetailsReservationRepository::class)]
 class DetailsReservation
-{
+{      
     #[ORM\Id]
+    #[ORM\GeneratedValue] // ✅ ID auto-généré
+    #[ORM\Column(type: "integer")]
+    private ?int $id = null;
+
     #[ORM\ManyToOne(targetEntity: Reservation::class, inversedBy: 'detailsReservations')]
     #[ORM\JoinColumn(name: "id_reservation", referencedColumnName: "id")]
     private ?Reservation $reservation = null;
 
-    #[ORM\Id]
     #[ORM\ManyToOne(targetEntity: Produit::class)]
     #[ORM\JoinColumn(name: "id_produit", referencedColumnName: "id")]
     private ?Produit $produit = null;
@@ -21,6 +24,7 @@ class DetailsReservation
     #[ORM\Column]
     private ?int $quantite = null;
 
+    // ✅ Correction : Supprime l'accolade incorrecte après `getQuantite()`
     public function getQuantite(): ?int
     {
         return $this->quantite;
@@ -54,4 +58,3 @@ class DetailsReservation
         return $this;
     }
 }
-

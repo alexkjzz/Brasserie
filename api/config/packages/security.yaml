@@ -51,7 +51,9 @@ security:
     access_control:
         - { path: ^/api/login, roles: PUBLIC_ACCESS }
         - { path: ^/api/register, roles: PUBLIC_ACCESS }
-        - { path: ^/api/produit, roles: PUBLIC_ACCESS }  
+        - { path: ^/api/produit, roles: PUBLIC_ACCESS }
+        - { path: ^/api/reservation, roles: ROLE_USER }
+        - { path: ^/api/reservation/, roles: ROLE_USER } 
         - { path: ^/api/utilisateur/all, roles: ROLE_USER }
         - { path: ^/api/utilisateur, roles: ROLE_USER }
         - { path: ^/api/utilisateur/delete, roles: ROLE_USER }
