@@ -28,32 +28,43 @@ class AuthController extends AbstractController
         $email = $content['email'] ?? null;
         $password = $content['password'] ?? null;
 
+        // Vérification des champs requis
         if (empty($email) || empty($password)) {
             return new JsonResponse(['message' => 'Email et mot de passe sont requis.'], JsonResponse::HTTP_BAD_REQUEST);
         }
 
+        // Recherche de l'utilisateur par email
         $utilisateur = $utilisateurRepository->findOneBy(['email' => $email]);
 
         if (!$utilisateur) {
             return new JsonResponse(['message' => 'Utilisateur non trouvé.'], JsonResponse::HTTP_NOT_FOUND);
         }
 
+        // Vérification du mot de passe
         if (!$passwordHasher->isPasswordValid($utilisateur, $password)) {
             return new JsonResponse(['message' => 'Mot de passe incorrect.'], JsonResponse::HTTP_UNAUTHORIZED);
         }
 
         try {
+            // Génération du token JWT
             $token = $JWTManager->create($utilisateur);
         } catch (\Exception $e) {
             return new JsonResponse(['message' => 'Erreur lors de la génération du token JWT.'], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
 
+        // Sérialisation des données utilisateur
         $jsonUtilisateur = $serializer->serialize($utilisateur, 'json', ['groups' => 'getUtilisateurs']);
+        $utilisateurData = json_decode($jsonUtilisateur, true);
 
+        // Ajout de l'ID utilisateur dans la réponse
         return new JsonResponse([
             'token' => $token,
-            'utilisateur' => json_decode($jsonUtilisateur),
-            'redirect' => '/monEspace'
+            'utilisateur' => [
+                'id' => $utilisateur->getId(),
+                'nom' => $utilisateur->getNom(),
+                'prenom' => $utilisateur->getPrenom(),
+                'email' => $utilisateur->getEmail(),
+            ],
         ], JsonResponse::HTTP_OK);
     }
 
