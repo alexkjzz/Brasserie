@@ -15,6 +15,20 @@ export const fetchUtilisateurs = async (token: string) => {
     return response.json();
 };
 
+export const createUtilisateur = async (data: Omit<Utilisateur, "id">) => {
+    const response = await fetch(`${API_URL}/create`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+    });
+
+    if (!response.ok) throw new Error("Erreur lors de la création de l'utilisateur.");
+    return response.json();
+};
+
+
 export const saveUtilisateur = async (token: string, data: Omit<Utilisateur, "id">, id: number) => {
     if (!id) throw new Error("Impossible de modifier un utilisateur sans ID."); 
 

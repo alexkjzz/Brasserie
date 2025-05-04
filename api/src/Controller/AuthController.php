@@ -42,7 +42,6 @@ class AuthController extends AbstractController
             return new JsonResponse(['message' => 'Mot de passe incorrect.'], JsonResponse::HTTP_UNAUTHORIZED);
         }
 
-        // 🔐 Génération du token JWT
         try {
             $token = $JWTManager->create($utilisateur);
         } catch (\Exception $e) {

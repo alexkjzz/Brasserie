@@ -70,4 +70,30 @@ class UtilisateurController extends AbstractController
 
         return new JsonResponse(['message' => 'Utilisateur supprimé avec succès.'], JsonResponse::HTTP_OK);
     }
+
+    #[Route('/create', name: 'create_utilisateur', methods: ['POST'])]
+    public function createUtilisateur(Request $request): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+    
+        if (!isset($data['nom'], $data['prenom'], $data['email'], $data['password'])) {
+            return new JsonResponse(['message' => 'Données incomplètes.'], JsonResponse::HTTP_BAD_REQUEST);
+        }
+    
+        $utilisateur = new Utilisateur();
+        $utilisateur->setNom($data['nom']);
+        $utilisateur->setPrenom($data['prenom']);
+        $utilisateur->setEmail($data['email']);
+        
+        // 🔐 Hash du mot de passe avant sauvegarde
+        $hashedPassword = password_hash($data['password'], PASSWORD_BCRYPT);
+        $utilisateur->setPassword($hashedPassword);
+    
+        $this->entityManager->persist($utilisateur);
+        $this->entityManager->flush();
+    
+        return new JsonResponse(['message' => 'Utilisateur créé avec succès.', 'id' => $utilisateur->getId()], JsonResponse::HTTP_CREATED);
+    }
+    
+
 }

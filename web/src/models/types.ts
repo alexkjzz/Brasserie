@@ -12,6 +12,7 @@ export interface Utilisateur {
     nom: string;
     prenom: string;
     email: string;
+    password?: string;
 }
 
 export interface Reservation {

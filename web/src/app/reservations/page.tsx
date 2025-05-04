@@ -156,7 +156,7 @@ export default function Reservations() {
 
                 <section className="text-left w-full border-b border-stone-500 pb-6 flex justify-between">
                     <div>
-                        <h1 className="text-4xl font-extrabold text-white">Mes Réservations</h1>
+                        <h1 className="text-4xl font-extrabold text-white">Réservations</h1>
                         <p className="text-stone-300 mt-3 text-lg leading-relaxed max-w-3xl">
                             Liste de vos réservations effectuées via l’application.
                         </p>

@@ -37,7 +37,7 @@ class Produit
     public function __construct()
     {
         $this->detailsReservations = new ArrayCollection();
-        $this->disponible = false; // ✅ Définit une valeur par défaut
+        $this->disponible = false;
     }
 
     public function getId(): ?int
@@ -99,7 +99,7 @@ class Produit
     public function setDisponible(bool $disponible): static
     {
     $this->disponible = $disponible;
-    return $this; // 🔥 Retourne l'instance de Produit
+    return $this;
 }
 }
 

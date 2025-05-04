@@ -15,6 +15,7 @@ const pageTitles: Record<string, string> = {
     "/reservations": "Gestion des réservation",
     "/users": "Gestion des utilisateurs",
     "/products": "Gestions des produits",
+    "/register": "S'inscrire",
 };
 
 const title = pageTitles[pathname] || "Brasserie";

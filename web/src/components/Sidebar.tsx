@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 const guestItems = [
     { href: "/", label: "Accueil", icon: <Home size={20} /> },
     { href: "/login", label: "Login", icon: <LogIn size={20} /> },
+    { href: "/register", label: "S'inscrire", icon: <User size={20} /> },
 ];
 
 const adminItems = [
@@ -38,7 +39,7 @@ export default function Sidebar() {
                     console.error("Erreur JWT :", error);
                 }
             } else {
-                setIsAdmin(false); // Repasser à false si le token disparaît
+                setIsAdmin(false);
             }
         };
     

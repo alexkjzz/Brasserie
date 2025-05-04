@@ -87,7 +87,7 @@ export default function ReservationModal({
                 <input
                     type="datetime-local"
                     name="dateReservation"
-                    value={formData.dateReservation ? formData.dateReservation.slice(0, 16) : ""} // ✅ Vérifie que la valeur existe
+                    value={formData.dateReservation ? formData.dateReservation.slice(0, 16) : ""} 
                     onChange={onChange}
                     className="w-full p-2 mb-2 rounded bg-stone-800 text-white"
                 />

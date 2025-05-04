@@ -71,7 +71,7 @@ export default function Home() {
                         ) : error ? (
                             <p className="text-red-400 text-center mt-4">{error}</p>
                         ) : (
-                          <ProductTable produits={produits} />
+                            <ProductTable produits={produits} />
                         )}
                     </section>
 
