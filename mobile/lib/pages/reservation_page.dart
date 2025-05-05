@@ -27,7 +27,7 @@ class _ReservationPageState extends State<ReservationPage> {
 
     try {
       final userProvider = Provider.of<UserProvider>(context, listen: false);
-      final details = await ApiService.fetchUserOrders(userProvider.token!);
+      final details = await ApiService.fetchUserReservations(userProvider.token!);
       setState(() {
         _details = details;
       });
@@ -45,34 +45,80 @@ class _ReservationPageState extends State<ReservationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Mes Commandes")),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
           : _errorMessage != null
-              ? Center(child: Text(_errorMessage!))
-              : ListView.builder(
-                  itemCount: _details.length,
-                  itemBuilder: (context, index) {
-                    final detail = _details[index];
-                    return Card(
-                      margin: EdgeInsets.all(8.0),
-                      child: ListTile(
-                        title: Text("Commande #${detail['reservation_id']}"),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text("Date : ${detail['dateReservation']}"),
-                            Text("Produits :"),
-                            ...detail['produits'].map<Widget>((prod) {
-                              return Text("- ${prod['nom']} (Quantité : ${prod['quantite']})");
-                            }).toList(),
-                            Text("Statut : ${detail['status']}"),
-                          ],
-                        ),
+              ? Center(
+                  child: Text(
+                    _errorMessage!,
+                    style: TextStyle(color: Colors.red, fontSize: 16),
+                  ),
+                )
+              : _details.isEmpty
+                  ? Center(
+                      child: Text(
+                        "Aucune commande trouvée.",
+                        style: TextStyle(fontSize: 16, color: Colors.grey),
                       ),
-                    );
-                  },
-                ),
+                    )
+                  : ListView.builder(
+                      itemCount: _details.length,
+                      itemBuilder: (context, index) {
+                        final detail = _details[index];
+                        return Card(
+                          margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          elevation: 3,
+                          child: Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Commande #${detail['reservation_id']}",
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).primaryColor,
+                                  ),
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  "Date : ${detail['dateReservation']}",
+                                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  "Produits :",
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                ),
+                                ...detail['produits'].map<Widget>((prod) {
+                                  return Padding(
+                                    padding: const EdgeInsets.only(left: 8.0, top: 4.0),
+                                    child: Text(
+                                      "- ${prod['nom']} (Quantité : ${prod['quantite']})",
+                                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                                    ),
+                                  );
+                                }).toList(),
+                                SizedBox(height: 8),
+                                Text(
+                                  "Statut : ${detail['status']}",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: detail['status'] == "Confirmée"
+                                        ? Colors.green
+                                        : Colors.red,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
     );
   }
 }

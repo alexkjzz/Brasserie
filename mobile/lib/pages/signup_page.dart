@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:mobile/services/api_service.dart';
 
 class SignUpPage extends StatefulWidget {
+  const SignUpPage({super.key});
+
   @override
   _SignUpPageState createState() => _SignUpPageState();
 }
@@ -16,7 +18,7 @@ class _SignUpPageState extends State<SignUpPage> {
   bool _isLoading = false;
   String? _errorMessage;
 
-  void _register() async {
+  Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() {
@@ -47,7 +49,6 @@ class _SignUpPageState extends State<SignUpPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Inscription")),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
@@ -115,24 +116,25 @@ class _SignUpPageState extends State<SignUpPage> {
                     return null;
                   },
                 ),
-                SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _register,
-                    child: _isLoading
-                        ? CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                          )
-                        : Text("S'inscrire"),
-                  ),
+                SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: _isLoading ? null : _register,
+                  child: _isLoading
+                      ? CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+                        )
+                      : Text("S'inscrire"),
                 ),
                 SizedBox(height: 16),
                 TextButton(
                   onPressed: () {
                     Navigator.pushReplacementNamed(context, '/signin');
                   },
-                  child: Text("Déja un compte ? Connectez vous !"),
+                  child: Text(
+                  "Vous avez déjà un compte ? Connectez-vous",
+                  style: TextStyle(color: Color(0xFF1DB954)),
+                ),
+                  
                 ),
               ],
             ),

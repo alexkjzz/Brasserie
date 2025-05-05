@@ -4,9 +4,12 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Accueil")),
       body: Center(
-        child: Text("Bienvenue sur l'application mobile !"),
+        child: Text(
+          "Bienvenue sur l'application mobile de la Brasserie !",
+          style: Theme.of(context).textTheme.bodyLarge,
+          textAlign: TextAlign.center,
+        ),
       ),
     );
   }

@@ -48,32 +48,59 @@ class _SignInPageState extends State<SignInPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Connexion")),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              Text(
+                "Bienvenue à la Brasserie",
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              SizedBox(height: 20),
               if (_errorMessage != null)
-                Text(
-                  _errorMessage!,
-                  style: TextStyle(color: Colors.red),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16.0),
+                  child: Text(
+                    _errorMessage!,
+                    style: TextStyle(color: Colors.red, fontSize: 14),
+                  ),
                 ),
               TextField(
                 controller: _emailController,
-                decoration: InputDecoration(labelText: "Email"),
-              ),
-              TextField(
-                controller: _passwordController,
-                decoration: InputDecoration(labelText: "Mot de passe"),
-                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: "Email",
+                  prefixIcon: Icon(Icons.email, color: Color(0xFF1DB954)),
+                ),
               ),
               SizedBox(height: 16),
+              TextField(
+                controller: _passwordController,
+                decoration: InputDecoration(
+                  labelText: "Mot de passe",
+                  prefixIcon: Icon(Icons.lock, color: Color(0xFF1DB954)),
+                ),
+                obscureText: true,
+              ),
+              SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _isLoading ? null : _login,
                 child: _isLoading
-                    ? CircularProgressIndicator()
+                    ? CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+                      )
                     : Text("Se connecter"),
+              ),
+              SizedBox(height: 10),
+              TextButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/signup');
+                },
+                child: Text(
+                  "Créer un compte",
+                  style: TextStyle(color: Color(0xFF1DB954)),
+                ),
               ),
             ],
           ),

@@ -43,7 +43,6 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Mes Informations")),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
           : _userInfo == null
@@ -53,11 +52,21 @@ class _ProfilePageState extends State<ProfilePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("Nom : ${_userInfo!['nom']}", style: TextStyle(fontSize: 18)),
-                      SizedBox(height: 8),
-                      Text("Prénom : ${_userInfo!['prenom']}", style: TextStyle(fontSize: 18)),
-                      SizedBox(height: 8),
-                      Text("Email : ${_userInfo!['email']}", style: TextStyle(fontSize: 18)),
+                      ListTile(
+                        leading: Icon(Icons.person, color: Color(0xFF1DB954)),
+                        title: Text("Nom"),
+                        subtitle: Text(_userInfo!['nom']),
+                      ),
+                      ListTile(
+                        leading: Icon(Icons.person_outline, color: Color(0xFF1DB954)),
+                        title: Text("Prénom"),
+                        subtitle: Text(_userInfo!['prenom']),
+                      ),
+                      ListTile(
+                        leading: Icon(Icons.email, color: Color(0xFF1DB954)),
+                        title: Text("Email"),
+                        subtitle: Text(_userInfo!['email']),
+                      ),
                     ],
                   ),
                 ),

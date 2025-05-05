@@ -15,11 +15,13 @@ class MainLayout extends StatefulWidget {
 class _MainLayoutState extends State<MainLayout> {
   int _currentIndex = 0;
 
-  void _onTabTapped(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
-  }
+  final List<Widget> _pages = [
+    HomePage(),
+    ProductsPage(),
+    ReservationPage(),
+    ProfilePage(),
+    SettingsPage(),
+  ];
 
   void _logout(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
@@ -39,15 +41,6 @@ class _MainLayoutState extends State<MainLayout> {
       return SizedBox.shrink(); // Retourne un widget vide temporairement
     }
 
-    // Liste des pages accessibles via la BottomNavigationBar
-    final List<Widget> pages = [
-      HomePage(),
-      ProductsPage(),
-      ReservationPage(),
-      ProfilePage(), // Ajout de la page Profil
-      SettingsPage(), // Ajout de la page Paramètres
-    ];
-
     return Scaffold(
       appBar: AppBar(
         title: Text("Brasserie"),
@@ -59,10 +52,14 @@ class _MainLayoutState extends State<MainLayout> {
           ),
         ],
       ),
-      body: pages[_currentIndex],
+      body: _pages[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
-        onTap: _onTabTapped,
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
         items: [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
@@ -78,13 +75,17 @@ class _MainLayoutState extends State<MainLayout> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
-            label: "Profil", // Ajout de l'onglet Profil
+            label: "Profil",
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
-            label: "Paramètres", // Ajout de l'onglet Paramètres
+            label: "Paramètres",
           ),
         ],
+        backgroundColor: Color(0xFF121212),
+        selectedItemColor: Color(0xFF1DB954),
+        unselectedItemColor: Colors.grey[600],
+        type: BottomNavigationBarType.fixed,
       ),
     );
   }

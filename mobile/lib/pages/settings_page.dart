@@ -44,7 +44,6 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Paramètres")),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -54,12 +53,13 @@ class _SettingsPageState extends State<SettingsPage> {
               decoration: InputDecoration(labelText: "Ancien mot de passe"),
               obscureText: true,
             ),
+            SizedBox(height: 16),
             TextField(
               controller: _newPasswordController,
               decoration: InputDecoration(labelText: "Nouveau mot de passe"),
               obscureText: true,
             ),
-            SizedBox(height: 16),
+            SizedBox(height: 20),
             ElevatedButton(
               onPressed: _isLoading ? null : _changePassword,
               child: _isLoading

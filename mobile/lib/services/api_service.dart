@@ -80,7 +80,7 @@ class ApiService {
   }
 
   // Méthode pour récupérer les commandes utilisateur
-  static Future<List<dynamic>> fetchUserOrders(String token) async {
+  static Future<List<dynamic>> fetchUserReservations(String token) async {
     final response = await http.get(
       Uri.parse("$baseUrl/reservation/user-orders"),
       headers: {
