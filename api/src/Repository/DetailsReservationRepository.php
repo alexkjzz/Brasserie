@@ -40,4 +40,14 @@ class DetailsReservationRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
+
+    public function findByUser($user)
+    {
+        return $this->createQueryBuilder('d')
+            ->join('d.reservation', 'r')
+            ->where('r.utilisateur = :user')
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getResult();
+    }
 }

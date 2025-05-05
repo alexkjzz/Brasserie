@@ -96,11 +96,14 @@ export default function Reservations() {
         if (!formData.produits || formData.produits.length === 0) return alert("Veuillez sélectionner au moins un produit.");
     
         const method = editingReservation ? "PUT" : "POST";
-        await saveReservation(token, formData, method, editingReservation?.id);
-    
-        closeModal();
-        const data = await fetchAllReservations(token);
-        setReservations(data);
+        try {
+            await saveReservation(token, formData, method, editingReservation?.id);
+            closeModal();
+            const data = await fetchAllReservations(token);
+            setReservations(data);
+        } catch (err) {
+            alert(err instanceof Error ? err.message : "Erreur inconnue.");
+        }
     };
     
     

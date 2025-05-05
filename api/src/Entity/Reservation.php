@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\ReservationRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -16,17 +18,25 @@ class Reservation
     #[Groups("reservation")]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[ORM\Column(type: "datetime")]
     #[Groups("reservation")]
     private ?\DateTimeInterface $dateReservation = null;
 
-    #[ORM\ManyToOne]
-    #[ORM\JoinColumn(name: "id_utilisateur", referencedColumnName: "id", nullable: false)]
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: "reservations")]
+    #[ORM\JoinColumn(name: "id_utilisateur", referencedColumnName: "id", nullable: false, onDelete: "CASCADE")]
     #[Groups("reservation")]
     private ?Utilisateur $utilisateur = null;
 
     #[ORM\Column(type: "string", length: 20)]
     private string $status = "Pending";
+
+    #[ORM\OneToMany(mappedBy: "reservation", targetEntity: DetailsReservation::class, cascade: ["persist", "remove"])]
+    private Collection $detailsReservations;
+
+    public function __construct()
+    {
+        $this->detailsReservations = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -38,7 +48,7 @@ class Reservation
         return $this->dateReservation;
     }
 
-    public function setDateReservation(\DateTimeInterface $dateReservation): static
+    public function setDateReservation(\DateTimeInterface $dateReservation): self
     {
         $this->dateReservation = $dateReservation;
         return $this;
@@ -49,7 +59,7 @@ class Reservation
         return $this->utilisateur;
     }
 
-    public function setUtilisateur(?Utilisateur $utilisateur): static
+    public function setUtilisateur(?Utilisateur $utilisateur): self
     {
         $this->utilisateur = $utilisateur;
         return $this;
@@ -63,6 +73,32 @@ class Reservation
     public function setStatus(string $status): self
     {
         $this->status = $status;
+        return $this;
+    }
+
+    public function getDetailsReservations(): Collection
+    {
+        return $this->detailsReservations;
+    }
+
+    public function addDetailsReservation(DetailsReservation $detailsReservation): self
+    {
+        if (!$this->detailsReservations->contains($detailsReservation)) {
+            $this->detailsReservations[] = $detailsReservation;
+            $detailsReservation->setReservation($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDetailsReservation(DetailsReservation $detailsReservation): self
+    {
+        if ($this->detailsReservations->removeElement($detailsReservation)) {
+            // Set the owning side to null (unless already changed)
+            if ($detailsReservation->getReservation() === $this) {
+                $detailsReservation->setReservation(null);
+            }
+        }
         return $this;
     }
 }

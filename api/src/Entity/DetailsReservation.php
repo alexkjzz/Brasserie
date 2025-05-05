@@ -9,30 +9,35 @@ use Doctrine\ORM\Mapping as ORM;
 class DetailsReservation
 {      
     #[ORM\Id]
-    #[ORM\GeneratedValue] // ✅ ID auto-généré
-    #[ORM\Column(type: "integer")]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(targetEntity: Reservation::class, inversedBy: 'detailsReservations')]
-    #[ORM\JoinColumn(name: "id_reservation", referencedColumnName: "id")]
+    #[ORM\ManyToOne(targetEntity: Reservation::class, inversedBy: "detailsReservations")]
+    #[ORM\JoinColumn(nullable: false, onDelete: "CASCADE")]
+    #[Groups("details:read")]
     private ?Reservation $reservation = null;
 
     #[ORM\ManyToOne(targetEntity: Produit::class)]
-    #[ORM\JoinColumn(name: "id_produit", referencedColumnName: "id")]
+    #[ORM\JoinColumn(nullable: false)]
     private ?Produit $produit = null;
 
-    #[ORM\Column]
-    private ?int $quantite = null;
+    #[ORM\Column(type: "integer")]
+    private int $quantite;
 
-    // ✅ Correction : Supprime l'accolade incorrecte après `getQuantite()`
-    public function getQuantite(): ?int
+    public function getId(): ?int
     {
-        return $this->quantite;
+        return $this->id;
     }
 
-    public function setQuantite(int $quantite): static
+    public function getReservation(): ?Reservation
     {
-        $this->quantite = $quantite;
+        return $this->reservation;
+    }
+
+    public function setReservation(?Reservation $reservation): self
+    {
+        $this->reservation = $reservation;
         return $this;
     }
 
@@ -41,20 +46,20 @@ class DetailsReservation
         return $this->produit;
     }
 
-    public function setProduit(?Produit $produit): static
+    public function setProduit(?Produit $produit): self
     {
         $this->produit = $produit;
         return $this;
     }
 
-    public function getReservation(): ?Reservation
+    public function getQuantite(): int
     {
-        return $this->reservation;
+        return $this->quantite;
     }
 
-    public function setReservation(?Reservation $reservation): static
+    public function setQuantite(int $quantite): self
     {
-        $this->reservation = $reservation;
+        $this->quantite = $quantite;
         return $this;
     }
 }

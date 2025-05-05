@@ -44,37 +44,37 @@ class _ProductsPageState extends State<ProductsPage> {
   }
 
   Future<void> _placeOrder() async {
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
-    final orderItems = _quantities.entries
-        .where((entry) => entry.value > 0)
-        .map((entry) => {"id": entry.key, "quantite": entry.value})
-        .toList();
+  final userProvider = Provider.of<UserProvider>(context, listen: false);
+  final orderItems = _quantities.entries
+      .where((entry) => entry.value > 0) // Inclure uniquement les produits avec une quantité > 0
+      .map((entry) => {"id": entry.key, "quantite": entry.value})
+      .toList();
 
-    if (orderItems.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Veuillez sélectionner au moins un produit.")),
-      );
-      return;
-    }
-
-    try {
-      await ApiService.createReservation(
-        userProvider.token!,
-        userProvider.userId!,
-        orderItems,
-      );
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Réservation créée avec succès !")),
-      );
-      setState(() {
-        _quantities.clear(); // Réinitialise les quantités
-      });
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Erreur : ${e.toString()}")),
-      );
-    }
+  if (orderItems.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Veuillez sélectionner au moins un produit.")),
+    );
+    return;
   }
+
+  try {
+    await ApiService.createReservationWithId(
+      userProvider.token!,
+      userProvider.userId!,
+      orderItems,
+    );
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Réservation créée avec succès !")),
+    );
+    setState(() {
+      _quantities.clear(); // Réinitialise les quantités
+    });
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Erreur : ${e.toString()}")),
+    );
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -88,44 +88,47 @@ class _ProductsPageState extends State<ProductsPage> {
                   itemCount: _products.length,
                   itemBuilder: (context, index) {
                     final product = _products[index];
-                    final productId = product['id'];
                     return Card(
                       margin: EdgeInsets.all(8.0),
                       child: ListTile(
                         title: Text(product['nom']),
                         subtitle: Text("Prix : ${product['prix']} €"),
-                        trailing: SizedBox(
-                          width: 120,
-                          child: Row(
-                            children: [
-                              IconButton(
-                                icon: Icon(Icons.remove),
-                                onPressed: () {
-                                  setState(() {
-                                    _quantities[productId] =
-                                        (_quantities[productId] ?? 0) - 1;
-                                    if (_quantities[productId]! < 0) {
-                                      _quantities[productId] = 0;
-                                    }
-                                  });
-                                },
+                        trailing: product['quantite'] > 0
+                            ? SizedBox(
+                                width: 120,
+                                child: Row(
+                                  children: [
+                                    IconButton(
+                                      icon: Icon(Icons.remove),
+                                      onPressed: (_quantities[product['id']] ?? 0) > 0
+                                          ? () {
+                                              setState(() {
+                                                _quantities[product['id']] = (_quantities[product['id']] ?? 0) - 1;
+                                              });
+                                            }
+                                          : null, // Désactive le bouton si la quantité est déjà à 0
+                                    ),
+                                    Text(
+                                      "${_quantities[product['id']] ?? 0}",
+                                      style: TextStyle(fontSize: 16),
+                                    ),
+                                    IconButton(
+                                      icon: Icon(Icons.add),
+                                      onPressed: (_quantities[product['id']] ?? 0) < product['quantite']
+                                          ? () {
+                                              setState(() {
+                                                _quantities[product['id']] = (_quantities[product['id']] ?? 0) + 1;
+                                              });
+                                            }
+                                          : null, // Désactive le bouton si la quantité atteint la limite
+                                    ),
+                                  ],
+                                ),
+                              )
+                            : Text(
+                                "Indisponible",
+                                style: TextStyle(color: Colors.red),
                               ),
-                              Text(
-                                "${_quantities[productId] ?? 0}",
-                                style: TextStyle(fontSize: 16),
-                              ),
-                              IconButton(
-                                icon: Icon(Icons.add),
-                                onPressed: () {
-                                  setState(() {
-                                    _quantities[productId] =
-                                        (_quantities[productId] ?? 0) + 1;
-                                  });
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
                       ),
                     );
                   },

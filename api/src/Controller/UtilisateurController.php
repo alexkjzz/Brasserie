@@ -4,11 +4,13 @@ namespace App\Controller;
 
 use App\Entity\Utilisateur;
 use App\Repository\UtilisateurRepository;
+use App\Repository\ReservationRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 #[Route('/api/utilisateur')]
 class UtilisateurController extends AbstractController
@@ -27,6 +29,23 @@ class UtilisateurController extends AbstractController
         return $this->json($utilisateurs);
     }
 
+    #[Route('/me', name: 'get_user_profile', methods: ['GET'])]
+    public function getUserProfile(): JsonResponse
+    {
+        $user = $this->getUser();
+
+        if (!$user) {
+            return new JsonResponse(['message' => 'Utilisateur non authentifié.'], JsonResponse::HTTP_UNAUTHORIZED);
+        }
+
+        return $this->json([
+            'id' => $user->getId(),
+            'nom' => $user->getNom(),
+            'prenom' => $user->getPrenom(),
+            'email' => $user->getEmail(),
+        ], JsonResponse::HTTP_OK);
+    }
+    
     #[Route('/{id}', name: 'get_utilisateur', methods: ['GET'])]
     public function getUtilisateur(UtilisateurRepository $utilisateurRepository, int $id): JsonResponse
     {
@@ -34,6 +53,7 @@ class UtilisateurController extends AbstractController
         if (!$utilisateur) {
             return new JsonResponse(['message' => 'Utilisateur non trouvé.'], JsonResponse::HTTP_NOT_FOUND);
         }
+
         return $this->json($utilisateur);
     }
 
@@ -58,16 +78,26 @@ class UtilisateurController extends AbstractController
     }
 
     #[Route('/delete/{id}', name: 'delete_utilisateur', methods: ['DELETE'])]
-    public function deleteUtilisateur(int $id): JsonResponse
-    {
-        $utilisateur = $this->entityManager->getRepository(Utilisateur::class)->find($id);
+    public function deleteUtilisateur(
+        int $id,
+        EntityManagerInterface $entityManager,
+        ReservationRepository $reservationRepository,
+        UtilisateurRepository $utilisateurRepository
+    ): JsonResponse {
+        $utilisateur = $utilisateurRepository->find($id);
+    
         if (!$utilisateur) {
             return new JsonResponse(['message' => 'Utilisateur non trouvé.'], JsonResponse::HTTP_NOT_FOUND);
         }
-
-        $this->entityManager->remove($utilisateur);
-        $this->entityManager->flush();
-
+    
+        $reservations = $reservationRepository->findBy(['utilisateur' => $utilisateur]);
+        foreach ($reservations as $reservation) {
+            $entityManager->remove($reservation);
+        }
+    
+        $entityManager->remove($utilisateur);
+        $entityManager->flush();
+    
         return new JsonResponse(['message' => 'Utilisateur supprimé avec succès.'], JsonResponse::HTTP_OK);
     }
 
@@ -85,7 +115,6 @@ class UtilisateurController extends AbstractController
         $utilisateur->setPrenom($data['prenom']);
         $utilisateur->setEmail($data['email']);
         
-        // 🔐 Hash du mot de passe avant sauvegarde
         $hashedPassword = password_hash($data['password'], PASSWORD_BCRYPT);
         $utilisateur->setPassword($hashedPassword);
     
@@ -94,6 +123,27 @@ class UtilisateurController extends AbstractController
     
         return new JsonResponse(['message' => 'Utilisateur créé avec succès.', 'id' => $utilisateur->getId()], JsonResponse::HTTP_CREATED);
     }
-    
 
+    #[Route('/change-password', name: 'change_password', methods: ['POST'])]
+    public function changePassword(Request $request, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $user = $this->getUser();
+
+        if (!$user) {
+            return new JsonResponse(['message' => 'Utilisateur non authentifié.'], JsonResponse::HTTP_UNAUTHORIZED);
+        }
+
+        $data = json_decode($request->getContent(), true);
+        $oldPassword = $data['oldPassword'] ?? null;
+        $newPassword = $data['newPassword'] ?? null;
+
+        if (!$passwordHasher->isPasswordValid($user, $oldPassword)) {
+            return new JsonResponse(['message' => 'Ancien mot de passe incorrect.'], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
+        $user->setPassword($passwordHasher->hashPassword($user, $newPassword));
+        $entityManager->flush();
+
+        return new JsonResponse(['message' => 'Mot de passe modifié avec succès.'], JsonResponse::HTTP_OK);
+    }
 }

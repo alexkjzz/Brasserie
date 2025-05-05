@@ -59,6 +59,8 @@ security:
         - { path: ^/api/utilisateur, roles: ROLE_USER }
         - { path: ^/api/utilisateur/delete, roles: ROLE_USER }
         - { path: ^/api/utilisateur/update/\d+, methods: [PUT], roles: ROLE_USER } # 🔥 Autorise les mises à jour des utilisateurs
+        - { path: ^/api/utilisateur/me, roles: IS_AUTHENTICATED_FULLY } 
+        - { path: ^/api/utilisateur/change-password, roles: ROLE_USER }
         - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }  # 🚨 Bloque toutes les requêtes API sauf celles spécifiées au-dessus
 
 

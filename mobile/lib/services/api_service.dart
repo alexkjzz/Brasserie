@@ -5,26 +5,26 @@ class ApiService {
   static const String baseUrl = "http://127.0.0.1:8000/api";
 
   // Méthode pour le login
-static Future<Map<String, dynamic>> login(String email, String password) async {
-  final response = await http.post(
-    Uri.parse("$baseUrl/login"),
-    headers: {"Content-Type": "application/json"},
-    body: jsonEncode({"email": email, "password": password}),
-  );
+  static Future<Map<String, dynamic>> login(String email, String password) async {
+    final response = await http.post(
+      Uri.parse("$baseUrl/login"),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({"email": email, "password": password}),
+    );
 
-  if (response.statusCode == 200) {
-    final data = jsonDecode(response.body);
-    if (data['utilisateur'] == null || data['token'] == null) {
-      throw Exception("L'ID utilisateur ou le token est manquant dans la réponse.");
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data['utilisateur'] == null || data['token'] == null) {
+        throw Exception("L'ID utilisateur ou le token est manquant dans la réponse.");
+      }
+      return {
+        'id': data['utilisateur']['id'],
+        'token': data['token'],
+      };
+    } else {
+      throw Exception(jsonDecode(response.body)['message'] ?? "Erreur de connexion");
     }
-    return {
-      'id': data['utilisateur']['id'],
-      'token': data['token'],
-    };
-  } else {
-    throw Exception(jsonDecode(response.body)['message'] ?? "Erreur de connexion");
   }
-}
 
   // Méthode pour l'inscription
   static Future<void> register(String nom, String prenom, String email, String password) async {
@@ -61,29 +61,28 @@ static Future<Map<String, dynamic>> login(String email, String password) async {
     }
   }
 
-// Méthode pour créer une réservation
-static Future<void> createReservation(String token, int userId, List<Map<String, dynamic>> produits) async {
-  final response = await http.post(
-    Uri.parse("$baseUrl/reservation"),
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer $token",
-    },
-    body: jsonEncode({
-      "id_utilisateur": userId,
-      "produits": produits,
-    }),
-  );
+  // Méthode pour créer une réservation
+  static Future<void> createReservationWithId(String token, int userId, List<Map<String, dynamic>> produits) async {
+    final response = await http.post(
+      Uri.parse("$baseUrl/reservation/$userId"),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      },
+      body: jsonEncode({
+        "produits": produits,
+      }),
+    );
 
-  if (response.statusCode != 201) {
-    throw Exception("Erreur lors de la création de la réservation.");
+    if (response.statusCode != 201) {
+      throw Exception("Erreur lors de la création de la réservation.");
+    }
   }
-}
 
-  // Méthode pour récupérer les réservations
-  static Future<List<dynamic>> fetchReservations(String token) async {
+  // Méthode pour récupérer les commandes utilisateur
+  static Future<List<dynamic>> fetchUserOrders(String token) async {
     final response = await http.get(
-      Uri.parse("$baseUrl/reservation"),
+      Uri.parse("$baseUrl/reservation/user-orders"),
       headers: {
         "Content-Type": "application/json",
         "Authorization": "Bearer $token",
@@ -93,7 +92,43 @@ static Future<void> createReservation(String token, int userId, List<Map<String,
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      throw Exception("Erreur lors de la récupération des réservations.");
+      throw Exception("Erreur lors de la récupération des commandes utilisateur.");
+    }
+  }
+
+  // Récupérer les informations utilisateur
+  static Future<Map<String, dynamic>> fetchUserProfile(String token) async {
+    final response = await http.get(
+      Uri.parse("$baseUrl/utilisateur/me"),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception("Erreur lors de la récupération des informations utilisateur.");
+    }
+  }
+
+  // Changer le mot de passe
+  static Future<void> changePassword(String token, String oldPassword, String newPassword) async {
+    final response = await http.post(
+      Uri.parse("$baseUrl/utilisateur/change-password"),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      },
+      body: jsonEncode({
+        "oldPassword": oldPassword,
+        "newPassword": newPassword,
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception("Erreur lors du changement de mot de passe.");
     }
   }
 }

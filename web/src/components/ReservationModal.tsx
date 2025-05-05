@@ -66,15 +66,21 @@ export default function ReservationModal({
                                     type="checkbox"
                                     checked={!!selected}
                                     onChange={(e) => onProductChange(produit, e.target.checked)}
+                                    disabled={produit.quantite === 0} // Désactive la case à cocher si le produit est indisponible
                                 />
-                                <span>{produit.nom} - {produit.prix}€</span>
+                                <span>
+                                    {produit.nom} - {produit.prix}€{" "}
+                                    {produit.quantite === 0 && <span className="text-red-500">(Indisponible)</span>}
+                                </span>
                                 {selected && (
                                     <input
                                         type="number"
-                                        min="1"
-                                        value={selected.quantite}
+                                        min="0" // Permet une valeur minimale de 0
+                                        max={produit.quantite} // Limite maximale définie par la quantité disponible
+                                        value={produit.quantite > 0 ? selected.quantite : 0} // Définit la valeur à 0 si le produit est indisponible
                                         onChange={(e) => onQuantityChange(produit.id, Number(e.target.value))}
                                         className="w-16 p-1 bg-stone-800 text-white text-center"
+                                        disabled={produit.quantite === 0} // Désactive l'input si le produit est indisponible
                                     />
                                 )}
                             </div>

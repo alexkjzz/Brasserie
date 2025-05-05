@@ -9,17 +9,17 @@ class ReservationPage extends StatefulWidget {
 }
 
 class _ReservationPageState extends State<ReservationPage> {
-  List<dynamic> _reservations = [];
+  List<dynamic> _details = [];
   bool _isLoading = true;
   String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
-    _fetchReservations();
+    _fetchDetails();
   }
 
-  Future<void> _fetchReservations() async {
+  Future<void> _fetchDetails() async {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -27,9 +27,9 @@ class _ReservationPageState extends State<ReservationPage> {
 
     try {
       final userProvider = Provider.of<UserProvider>(context, listen: false);
-      final reservations = await ApiService.fetchReservations(userProvider.token!);
+      final details = await ApiService.fetchUserOrders(userProvider.token!);
       setState(() {
-        _reservations = reservations;
+        _details = details;
       });
     } catch (e) {
       setState(() {
@@ -45,20 +45,30 @@ class _ReservationPageState extends State<ReservationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Réservations")),
+      appBar: AppBar(title: Text("Mes Commandes")),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
           : _errorMessage != null
               ? Center(child: Text(_errorMessage!))
               : ListView.builder(
-                  itemCount: _reservations.length,
+                  itemCount: _details.length,
                   itemBuilder: (context, index) {
-                    final reservation = _reservations[index];
+                    final detail = _details[index];
                     return Card(
                       margin: EdgeInsets.all(8.0),
                       child: ListTile(
-                        title: Text("Réservation #${reservation['id']}"),
-                        subtitle: Text("Date : ${reservation['date']}"),
+                        title: Text("Commande #${detail['reservation_id']}"),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text("Date : ${detail['dateReservation']}"),
+                            Text("Produits :"),
+                            ...detail['produits'].map<Widget>((prod) {
+                              return Text("- ${prod['nom']} (Quantité : ${prod['quantite']})");
+                            }).toList(),
+                            Text("Statut : ${detail['status']}"),
+                          ],
+                        ),
                       ),
                     );
                   },

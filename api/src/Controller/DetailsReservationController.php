@@ -8,23 +8,12 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 
 #[Route('/api/details-reservation')]
 class DetailsReservationController extends AbstractController
 {
-    #[Route('/', methods: ['GET'])]
-    public function list(DetailsReservationRepository $repository): Response
-    {
-        return $this->json($repository->findAll());
-    }
-
-    #[Route('/{id_reservation}/{id_produit}', methods: ['GET'])]
-    public function show(DetailsReservationRepository $repository, int $id_reservation, int $id_produit): Response
-    {
-        $detail = $repository->findOneBy(['reservation' => $id_reservation, 'produit' => $id_produit]);
-        return $detail ? $this->json($detail) : $this->json(['message' => 'Détails de réservation non trouvés'], Response::HTTP_NOT_FOUND);
-    }
 
     #[Route('/', methods: ['POST'])]
     public function create(Request $request, EntityManagerInterface $entityManager): Response
@@ -51,5 +40,29 @@ class DetailsReservationController extends AbstractController
         $entityManager->flush();
 
         return $this->json(['message' => 'Détails supprimés']);
+    }
+
+    #[Route('/user', name: 'get_user_details_reservations', methods: ['GET'])]
+    public function getUserDetailsReservations(
+        DetailsReservationRepository $detailsReservationRepository
+    ): JsonResponse {
+        $user = $this->getUser();
+
+        if (!$user) {
+            return new JsonResponse(['message' => 'Utilisateur non authentifié.'], JsonResponse::HTTP_UNAUTHORIZED);
+        }
+
+        $details = $detailsReservationRepository->findByUser($user);
+
+        $data = array_map(function ($detail) {
+            return [
+                'reservation_id' => $detail->getReservation()->getId(),
+                'dateReservation' => $detail->getReservation()->getDateReservation()->format('Y-m-d H:i:s'),
+                'produit' => $detail->getProduit()->getNom(),
+                'quantite' => $detail->getQuantite(),
+            ];
+        }, $details);
+
+        return new JsonResponse($data, JsonResponse::HTTP_OK);
     }
 }

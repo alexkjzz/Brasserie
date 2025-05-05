@@ -74,7 +74,7 @@ class ProduitController extends AbstractController
         if (isset($data['prix']) && is_numeric($data['prix'])) $produit->setPrix((float) $data['prix']);
         if (isset($data['quantite']) && is_int($data['quantite'])) {
             $produit->setQuantite((int) $data['quantite']);
-            $produit->setDisponible($data['quantite'] > 0);
+            $produit->setDisponible($data['quantite'] > 0); // Met à jour la disponibilité
         }
 
         $entityManager->flush();

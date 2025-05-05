@@ -4,6 +4,8 @@ import '../providers/user_provider.dart';
 import '../pages/home_page.dart';
 import '../pages/products_page.dart';
 import '../pages/reservation_page.dart';
+import '../pages/profile_page.dart';
+import '../pages/settings_page.dart';
 
 class MainLayout extends StatefulWidget {
   @override
@@ -38,10 +40,12 @@ class _MainLayoutState extends State<MainLayout> {
     }
 
     // Liste des pages accessibles via la BottomNavigationBar
-    final List<Widget> pages = [ // Renommé pour éviter l'erreur de variable commençant par un underscore
+    final List<Widget> pages = [
       HomePage(),
-      ProductsPage(), // Suppression des paramètres non définis
-      ReservationPage(), // Suppression des paramètres non définis
+      ProductsPage(),
+      ReservationPage(),
+      ProfilePage(), // Ajout de la page Profil
+      SettingsPage(), // Ajout de la page Paramètres
     ];
 
     return Scaffold(
@@ -71,6 +75,14 @@ class _MainLayoutState extends State<MainLayout> {
           BottomNavigationBarItem(
             icon: Icon(Icons.calendar_today),
             label: "Réservations",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: "Profil", // Ajout de l'onglet Profil
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: "Paramètres", // Ajout de l'onglet Paramètres
           ),
         ],
       ),
