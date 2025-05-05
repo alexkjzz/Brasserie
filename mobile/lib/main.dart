@@ -6,7 +6,6 @@ import 'pages/signin_page.dart';
 import 'pages/signup_page.dart';
 import 'pages/profile_page.dart';
 import 'pages/settings_page.dart';
-import 'pages/splash_screen.dart';
 
 void main() {
   runApp(MyApp());
@@ -19,7 +18,7 @@ class MyApp extends StatelessWidget {
       create: (_) => UserProvider(),
       child: MaterialApp(
         title: 'Brasserie App',
-        initialRoute: '/splash',
+        initialRoute: '/signin',
         theme: ThemeData(
           brightness: Brightness.dark, // Thème sombre
           primaryColor: Color(0xFF1DB954), // Vert Spotify
@@ -73,7 +72,6 @@ class MyApp extends StatelessWidget {
         ),
         debugShowCheckedModeBanner: false,
         routes: {
-          '/splash': (context) => SplashScreen(),
           '/signin': (context) => SignInPage(),
           '/signup': (context) => SignUpPage(),
           '/home': (context) => MainLayout(),
