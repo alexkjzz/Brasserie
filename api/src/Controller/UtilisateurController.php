@@ -115,14 +115,23 @@ class UtilisateurController extends AbstractController
         $utilisateur->setPrenom($data['prenom']);
         $utilisateur->setEmail($data['email']);
         
+        // Définition du mot de passe haché
         $hashedPassword = password_hash($data['password'], PASSWORD_BCRYPT);
         $utilisateur->setPassword($hashedPassword);
+        
+        // Ajout du rôle ROLE_USER
+        $utilisateur->setRoles(['ROLE_USER']);
     
         $this->entityManager->persist($utilisateur);
         $this->entityManager->flush();
     
-        return new JsonResponse(['message' => 'Utilisateur créé avec succès.', 'id' => $utilisateur->getId()], JsonResponse::HTTP_CREATED);
+        return new JsonResponse([
+            'message' => 'Utilisateur créé avec succès.',
+            'id' => $utilisateur->getId(),
+            'roles' => $utilisateur->getRoles()
+        ], JsonResponse::HTTP_CREATED);
     }
+    
 
     #[Route('/change-password', name: 'change_password', methods: ['POST'])]
     public function changePassword(Request $request, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager): JsonResponse
