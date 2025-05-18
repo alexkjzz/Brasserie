@@ -94,7 +94,6 @@ class Reservation
     public function removeDetailsReservation(DetailsReservation $detailsReservation): self
     {
         if ($this->detailsReservations->removeElement($detailsReservation)) {
-            // Set the owning side to null (unless already changed)
             if ($detailsReservation->getReservation() === $this) {
                 $detailsReservation->setReservation(null);
             }

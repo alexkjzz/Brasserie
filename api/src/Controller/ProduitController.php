@@ -14,7 +14,7 @@ use Symfony\Component\Routing\Annotation\Route;
 #[Route('/api/produit')]
 class ProduitController extends AbstractController
 {
-    // ✅ Route pour récupérer tous les produits
+    // Route pour récupérer tous les produits
     #[Route('/', methods: ['GET'])]
     public function list(ProduitRepository $repository): JsonResponse
     {
@@ -22,7 +22,7 @@ class ProduitController extends AbstractController
         return $this->json($produits, Response::HTTP_OK);
     }
 
-    // ✅ Route pour récupérer un produit par ID
+    // Route pour récupérer un produit par ID
     #[Route('/{id}', methods: ['GET'])]
     public function show(ProduitRepository $repository, int $id): JsonResponse
     {
@@ -30,13 +30,13 @@ class ProduitController extends AbstractController
         return $produit ? $this->json($produit) : $this->json(['message' => 'Produit non trouvé'], Response::HTTP_NOT_FOUND);
     }
 
-    // ✅ Route pour ajouter un produit
+    // Route pour ajouter un produit
     #[Route('/', methods: ['POST'])]
     public function create(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
 
-        // 🔍 Validation des champs requis
+        // Validation des champs requis
         if (!isset($data['nom'], $data['description'], $data['prix'], $data['quantite'])) {
             return $this->json(['message' => 'Tous les champs sont requis'], Response::HTTP_BAD_REQUEST);
         }
@@ -58,7 +58,7 @@ class ProduitController extends AbstractController
         return $this->json($produit, Response::HTTP_CREATED);
     }
 
-    // ✅ Route pour mettre à jour un produit
+    // Route pour mettre à jour un produit
     #[Route('/{id}', methods: ['PUT'])]
     public function update(Request $request, EntityManagerInterface $entityManager, ProduitRepository $repository, int $id): JsonResponse
     {
@@ -82,7 +82,7 @@ class ProduitController extends AbstractController
         return $this->json($produit, Response::HTTP_OK);
     }
 
-    // ✅ Route pour supprimer un produit
+    // Route pour supprimer un produit
     #[Route('/{id}', methods: ['DELETE'])]
     public function delete(EntityManagerInterface $entityManager, ProduitRepository $repository, int $id): JsonResponse
     {

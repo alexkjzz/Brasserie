@@ -89,7 +89,7 @@ class ReservationController extends AbstractController
 
             $produits = [];
             foreach ($details as $detail) {
-                if ($detail->getProduit()) { // ✅ Vérifie que le produit n'est pas null
+                if ($detail->getProduit()) { // Vérifie que le produit n'est pas null
                     $produits[] = [
                         'id' => $detail->getProduit()->getId(),
                         'nom' => $detail->getProduit()->getNom(),
