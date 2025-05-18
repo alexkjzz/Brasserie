@@ -26,19 +26,18 @@ class _MainLayoutState extends State<MainLayout> {
   void _logout(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     userProvider.disconnect();
-    Navigator.pushReplacementNamed(context, '/signin'); // Redirige vers la page de connexion
+    Navigator.pushReplacementNamed(context, '/signin');
   }
 
   @override
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);
 
-    // Vérifiez si l'utilisateur est connecté
     if (userProvider.userId == null || userProvider.token == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.pushReplacementNamed(context, '/signin');
       });
-      return SizedBox.shrink(); // Retourne un widget vide temporairement
+      return SizedBox.shrink();
     }
 
     return Scaffold(

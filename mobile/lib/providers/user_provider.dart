@@ -22,6 +22,6 @@ class UserProvider with ChangeNotifier {
   // Méthode pour déconnecter l'utilisateur
   void disconnect() {
     clearUser();
-    // Vous pouvez ajouter d'autres actions ici si nécessaire
+
   }
 }

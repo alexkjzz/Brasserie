@@ -20,9 +20,9 @@ class MyApp extends StatelessWidget {
         title: 'Brasserie App',
         initialRoute: '/signin',
         theme: ThemeData(
-          brightness: Brightness.dark, // Thème sombre
-          primaryColor: Color(0xFF1DB954), // Vert Spotify
-          scaffoldBackgroundColor: Color(0xFF121212), // Fond noir Spotify
+          brightness: Brightness.dark,
+          primaryColor: Color(0xFF1DB954),
+          scaffoldBackgroundColor: Color(0xFF121212),
           appBarTheme: AppBarTheme(
             backgroundColor: Color(0xFF121212),
             elevation: 0,
