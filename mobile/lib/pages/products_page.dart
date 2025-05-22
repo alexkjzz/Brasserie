@@ -102,14 +102,15 @@ class _ProductsPageState extends State<ProductsPage> {
                         padding: const EdgeInsets.all(12.0),
                         child: Row(
                           children: [
-                            Image.network(
-                              product['imageUrl'] ?? "",
-                              width: 50,
-                              height: 50,
+                            Image.asset(
+                              'assets/images/produits-${product['id'].toString().padLeft(2, '0')}.png',
+                              width: 70,
+                              height: 70,
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) =>
                                   Icon(Icons.image_not_supported, size: 50),
-                            ),
+                            )
+                            ,
                             SizedBox(width: 16),
                             Expanded(
                               child: Column(
